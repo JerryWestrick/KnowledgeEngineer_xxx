@@ -5,10 +5,14 @@ from typing import Any
 from rich.style import Style
 from textual.app import App, ComposeResult, CSSPathType
 from textual.command import Provider, Hits, Hit
+from textual.containers import Grid
 from textual.message import Message
 from textual.screen import Screen
-from textual.widgets import Header, Footer, RichLog, Tree, Static, Label, Input, Button, DirectoryTree, MarkdownViewer
+from textual.widget import Widget
+from textual.widgets import Header, Footer, RichLog, Tree, Static, Label, Input, Button, DirectoryTree, MarkdownViewer, \
+    Select
 
+from OpenAI_API_Costs import OpenAI_API_Costs
 from db import DB
 from logger import Logger
 from step import Step
@@ -44,8 +48,6 @@ class StepEditor(Static):
     wlog: Logger = Logger(namespace="StepEditor", debug=True)
     pname: str = ''
     step: Step | None = None
-    step_widgets = ['name', 'prompt_name', 'storage_path', 'text_file']
-    ai_widgets = ['model', 'temperature', 'max_tokens']
 
     async def step_action(self, sa: StepAction) -> None:
 
@@ -55,31 +57,79 @@ class StepEditor(Static):
             if s.name == sa.sname:
                 self.step = s
 
-        for wid in self.step_widgets:
-            self.query_one(f"#{wid}").value = str(getattr(self.step, wid))
-        for wid in self.ai_widgets:
-            self.query_one(f"#{wid}").value = str(getattr(self.step.ai, wid))
+        for aWidget in self.fields:
+            match aWidget.__class__.__name__:
+                case 'Label':
+                    continue
+
+                case 'Input':
+                    name = aWidget.id[:-6]
+                    value = getattr(self.step, name, None)
+                    if value is None:
+                        value = getattr(self.step.ai, name, None)
+                    aWidget.value = str(value)
+                    continue
+
+                case "Select":
+                    name = aWidget.id[:-7]
+                    value = getattr(self.step, name, None)
+                    if value is None:
+                        value = getattr(self.step.ai, name, None)
+                    aWidget.value = str(value)
+                    continue
+
+                case _:
+                    self.wlog.error(f"Widget:{aWidget.id} is of unknown class {aWidget.__class__}")
 
         self.query_one(Button).remove_class("hidden").label = f"[Execute: {self.step.name}]"
 
         if sa.cname == 'Select':
             return
+
         self.wlog.info(f"Running Worker to execute step: {self.pname}/{self.step.name}")
         self.run_worker(self.step.run(self.pname), exclusive=True)
 
     def compose(self) -> ComposeResult:
         self.border_title = 'Step Editor'
-        for k in self.step_widgets:
-            yield Label(f"{make_label(k):>13}: ", id=f"{k}_lbl", classes='field-name')
-            yield Input("", id=k, classes='field-input')
-        for k in self.ai_widgets:
-            yield Label(f"{make_label(k):>13}: ", id=f"{k}_lbl", classes='field-name')
-            yield Input("", id=k, classes='field-input')
 
-        yield Static("", id="filler")
+        self.fields = [
+            # Step Name
+            Label('Name:', id="name_lbl", classes="field_lbl"),
+            Input("1", id="name_field", classes="field_input"),
 
-        b = Button("Execute ", id="exec-btn")
-        yield b
+            # Prompt Name
+            Label('Prompt Name:', id="prompt_name_lbl", classes="field_lbl"),
+            Input("2", id="prompt_name_field", classes="field_input"),
+
+            # Storage Path
+            Label('Storage Path:', id="storage_path_lbl", classes="field_lbl"),
+            Input("3", id="storage_path_field", classes="field_input"),
+
+            # Text File
+            Label('Text File:', id="text_file_lbl", classes="field_lbl"),
+            Input("4", id="text_file_field", classes="field_input"),
+
+            # Model
+            Label('Model:', id="model_lbl", classes="field_lbl"),
+            # Input("5", id="model_field", classes="field_input"),
+            Select([(k, k) for k in OpenAI_API_Costs.keys()],
+                   id="model_select",
+                   classes="field_input",
+                   allow_blank=True,
+                   value='gpt-3.5-turbo'
+                   ),
+
+            # Temperature
+            Label('Temperature:', id="temperature_lbl", classes="field_lbl"),
+            Input("6", id="temperature_field", classes="field_input"),
+
+            # Max Tokens
+            Label('Max Tokens:', id="max_tokens_lbl", classes="field_lbl"),
+            Input("7", id="max_tokens_field", classes="field_input"),
+        ]
+
+        yield Grid(*self.fields)
+        yield Button("Execute ", id="exec-btn")
 
     async def on_button_pressed(self, event: Button.Pressed) -> None:
         await self.step_action(StepAction("Execute", self.pname, self.name))
@@ -168,7 +218,6 @@ class ProcessEditor(Static):
 
 
 class MemoryTree(Static):
-
     wlog: Logger = Logger(namespace="MemoryTree")
 
     def compose(self) -> ComposeResult:
@@ -254,5 +303,10 @@ if __name__ == "__main__":
 # @Done command Execute locks screen, while Button Execute frees it
 # @Todo allow parallel conversations to chatGPT.
 # @Done change logging of chat msgs to show conversation (to allow for above)
-# @Done The Step Editor needs working (drop down for Model etc)
+# @Done drop down for Model
+# @Todo StepEditor: Prompt Name, Storage Path, Text File need file selectors
+# @Todo StepEditor: Temperature and Max Tokens need validation
 # @Todo Fix execute Process
+# @Todo File Editor is a MarkdownViewer.  Need an editor for markdown, and a separate editor for text Files.
+# @Todo Look into syntax highlighting .pe files
+#
