@@ -1,0 +1,79 @@
+Screen {
+    layout: grid;
+    grid-size: 2;
+    grid-columns: 3fr 5fr;
+    grid_rows: 12 48 auto;
+    color: blue;
+}
+
+StepEditor {
+    layout: grid;
+    grid-size: 2;
+    grid-columns: auto 100%;
+    border: round green;
+    height: 100%;
+}
+
+.field-name {
+    color: turquoise;
+    border: none;
+    align: right middle;
+}
+
+.field-input {
+    margin: 0;
+    padding: 0;
+    border: none;
+    width: auto;
+    max_height: 1;
+}
+
+
+#process-editor {
+    border: round green;
+    min-width: 2fr;
+}
+
+#logger {
+    border: round green;
+    height: 100%;
+    column-span: 2;
+    min-height: 12;
+}
+
+.hidden {
+    display: none;
+}
+
+#exec-btn {
+    text-align: left;
+    border: none;
+    background: rgb(0, 160, 0);
+    color: rgb(0, 65, 0);
+    text-style: bold;
+    dock: bottom;
+}
+
+#filler {
+    border: none;
+}
+
+#memory-tree {
+    border: round green;
+}
+
+#file-editor {
+    border: round green;
+    background: white;
+
+}
+
+DirectoryTree {
+    border: none;
+}
+
+#mdv {
+    border: none;
+    width: 100%;
+}
+
