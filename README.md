@@ -57,6 +57,7 @@ We need to manage the Knowledge, We need to break the problem into the steps we 
 
 This the AI can easily and (more importantly) consistently do.
 
+
 ### Step 2 - Make an Implementation Plan
 - Read the application requirements in Snake/Planning/Snake Game Requirements.md
 - generate Implementation Plan and write it to Snake/Planning/Implementation Plan.md
