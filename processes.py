@@ -2,7 +2,6 @@ import jsonpickle as jsonpickle
 from step import Step
 
 
-
 def ProcessList_save(pl):
     # Write JSON data with Unicode characters to file
     file_path = "ProcessList.json"
