@@ -1,96 +1,182 @@
-# Client Implementation Plan for Snake Online Game
+# Client Implementation Plan
 
-This document outlines the implementation plan for the client-side of the Snake Online Game. It maps each requirement from the `Client_Requirements.md` to functions that describe the interface and logic of each function, along with extensive documentation.
+## Requirements Mapping
 
-## 1. Single HTML File (`SnakeClient.html`)
+1. Single HTML File
 
-### Function: `initializeClient()`
-- **Interface**: This function will be called when the HTML file is loaded.
-- **Logic**: It will set up the initial state of the client, including loading the CSS and JavaScript into the HTML file.
-- **Documentation**: This function is responsible for initializing the client environment, ensuring that all necessary components are loaded and ready for the game to start.
+- Function: `createHTMLFile()`
 
-## 2. WebSockets Communication
+   This function will create the SnakeClient.html file containing the HTML, CSS, and JavaScript code for the client.
 
-### Function: `setupWebSocket()`
-- **Interface**: This function will establish a WebSocket connection to the server.
-- **Logic**: It will handle the WebSocket events such as onopen, onmessage, onerror, and onclose.
-- **Documentation**: This function manages the real-time communication with the server, processing incoming messages and handling any errors or disconnections.
+   ```python
+   def createHTMLFile():
+       # Implementation details
+   ```
 
-## 3. User Interface
+2. WebSockets Communication
 
-### Function: `promptUsername()`
-- **Interface**: This function will prompt the user for a username when the client starts.
-- **Logic**: It will display a prompt dialog and send the "Joining" message with the username to the server.
-- **Documentation**: This function is the entry point for the user to enter their username and begin the game.
+- Function: `connectToServer()`
 
-## 4. Game Board Display
+   This function will establish a WebSocket connection with the server and handle the communication between the client and server.
 
-### Function: `renderGameBoard(gameBoardData)`
-- **Interface**: This function takes the game board data as an argument.
-- **Logic**: It will render the 2D 100x100 character array onto the HTML canvas, resizing characters as needed.
-- **Documentation**: This function is responsible for visually representing the game board on the client's screen, updating it as the game progresses.
+   ```python
+   def connectToServer():
+       # Implementation details
+   ```
 
-## 5. Client List Display
+3. User Interface
 
-### Function: `updateClientList(clientsData)`
-- **Interface**: This function takes the clients' data as an argument.
-- **Logic**: It will update the status bar with the client list, showing each client's character, username, and score.
-- **Documentation**: This function keeps the client list display in the status bar up to date with the current game state.
+- Function: `promptForUsername()`
 
-## 6. User Interaction
+   This function will prompt the user to enter a username.
 
-### Function: `detectArrowKeyPress()`
-- **Interface**: This function will be bound to the keydown event for arrow keys.
-- **Logic**: It will send a "DirectionChange" message to the server with the new direction.
-- **Documentation**: This function allows the user to control their snake by detecting arrow key presses and communicating the direction change to the server.
+   ```python
+   def promptForUsername():
+       # Implementation details
+   ```
 
-## 7. Handling Server Messages
+- Function: `displayGameBoard()`
 
-### Function: `processServerMessage(message)`
-- **Interface**: This function takes a message object as an argument.
-- **Logic**: It will update the game board or client list, or show a pop-up based on the message type.
-- **Documentation**: This function is the central hub for processing all messages received from the server and taking appropriate actions on the client side.
+   This function will display the game board on the client's screen.
 
-## 8. Error Handling
+   ```python
+   def displayGameBoard():
+       # Implementation details
+   ```
 
-### Function: `handleNetworkError()`
-- **Interface**: This function will be called when a network error or disconnection occurs.
-- **Logic**: It will attempt to reconnect or display an error message to the user.
-- **Documentation**: This function ensures that the client handles network issues gracefully, maintaining a good user experience.
+- Function: `displayStatusBar()`
 
-## 9. Visual and Aesthetic Elements
+   This function will display the status bar at the bottom of the window, showing the client list.
 
-### Function: `applyStyles()`
-- **Interface**: This function will be called during client initialization.
-- **Logic**: It will apply CSS styles to the game board and status bar for visual appeal.
-- **Documentation**: This function is responsible for the visual presentation of the game, ensuring that elements are aesthetically pleasing and clear.
+   ```python
+   def displayStatusBar():
+       # Implementation details
+   ```
 
-## 10. Responsiveness
+4. Game Board Display
 
-### Function: `adjustForScreenSize()`
-- **Interface**: This function will be called on window resize events.
-- **Logic**: It will adjust the game board and other elements to fit different screen sizes and devices.
-- **Documentation**: This function ensures that the game remains functional and visually consistent across various devices and browsers.
+- Function: `resizeBoard()`
 
-## 11. Client Initialization
+   This function will resize the game board based on the window size.
 
-### Function: `joinGame()`
-- **Interface**: This function will be called after the username is prompted.
-- **Logic**: It will send the "Joining" message with the username to the server.
-- **Documentation**: This function manages the initial handshake with the server, signaling the client's intention to join the game.
+   ```python
+   def resizeBoard():
+       # Implementation details
+   ```
 
-## 12. Client-Side Logic
+- Function: `scaleCharacters()`
 
-### Function: `updateGameState(gameState)`
-- **Interface**: This function takes the game state as an argument.
-- **Logic**: It will update the client's display based on the game state without implementing game rules.
-- **Documentation**: This function ensures that the client accurately reflects the game state provided by the server, without interfering with game mechanics.
+   This function will scale the characters displayed on the game board based on the board size.
 
-## 13. Accessibility
+   ```python
+   def scaleCharacters():
+       # Implementation details
+   ```
 
-### Function: `ensureAccessibility()`
-- **Interface**: This function will be called during client initialization.
-- **Logic**: It will apply accessibility best practices to the client interface.
-- **Documentation**: This function is dedicated to making the game accessible to users with disabilities, following web accessibility guidelines.
+5. Client List Display
 
-Each function will be implemented with careful consideration of the requirements and will include error handling and validation as needed. The client will be thoroughly tested to ensure compliance with the outlined requirements and a smooth user experience.
+- Function: `updateClientList()`
+
+   This function will update the client list displayed in the status bar.
+
+   ```python
+   def updateClientList():
+       # Implementation details
+   ```
+
+6. User Interaction
+
+- Function: `detectArrowKeyPress()`
+
+   This function will detect arrow key presses and send the corresponding "DirectionChange" message to the server.
+
+   ```python
+   def detectArrowKeyPress():
+       # Implementation details
+   ```
+
+7. Handling Server Messages
+
+- Function: `handleSnakeDiedMessage()`
+
+   This function will handle the "SnakeDied" message received from the server.
+
+   ```python
+   def handleSnakeDiedMessage():
+       # Implementation details
+   ```
+
+- Function: `handleGameStatusMessage()`
+
+   This function will handle the "GameStatus" message received from the server and update the game board and client list.
+
+   ```python
+   def handleGameStatusMessage():
+       # Implementation details
+   ```
+
+8. Error Handling
+
+- Function: `handleNetworkError()`
+
+   This function will handle network errors and disconnections gracefully.
+
+   ```python
+   def handleNetworkError():
+       # Implementation details
+   ```
+
+9. Visual and Aesthetic Elements
+
+- Function: `designGameBoard()`
+
+   This function will design the visual elements of the game board to make it visually appealing.
+
+   ```python
+   def designGameBoard():
+       # Implementation details
+   ```
+
+10. Responsiveness
+
+- Function: `handleScreenResize()`
+
+   This function will handle screen resize events and ensure the client interface remains responsive.
+
+   ```python
+   def handleScreenResize():
+       # Implementation details
+   ```
+
+11. Client Initialization
+
+- Function: `initializeClient()`
+
+   This function will handle the initialization process of the client, including connecting to the server and sending the "Joining" message.
+
+   ```python
+   def initializeClient():
+       # Implementation details
+   ```
+
+12. Client-Side Logic
+
+- Function: `updateGameState()`
+
+   This function will update the game state on the client-side based on the received "GameStatus" message.
+
+   ```python
+   def updateGameState():
+       # Implementation details
+   ```
+
+13. Accessibility
+
+- Function: `implementAccessibilityFeatures()`
+
+   This function will implement accessibility features to ensure the client is accessible to users with disabilities.
+
+   ```python
+   def implementAccessibilityFeatures():
+       # Implementation details
+   ```

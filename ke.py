@@ -481,7 +481,7 @@ class KEApp(App):
         self.step_editor = StepEditor()
         self.mt = MemoryTree(id="memory_tree")
         self.file_editor = FileEditor(id="file_editor", classes="file_editor")
-        self.rt_log = RichLog(id="logger", highlight=True, markup=True)
+        self.rt_log = RichLog(id="logger", highlight=False, markup=True)
         self.rt_log.border_title = "Message Log"
         Logger.logger_widget = self.rt_log
 

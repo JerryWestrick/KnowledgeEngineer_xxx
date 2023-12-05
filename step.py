@@ -109,8 +109,15 @@ class Step:
         self.ai.e_stats['s_total'] = 0.0
         self.ai.e_stats['elapsed_time'] = 0.0
 
-        self.log.info(
-            f'{"="*50}\n{head}Begin Step: {self.pname}:{self.name} -- {self.prompt_name}\n{head}Call "{self.ai.model}"')
+        top_left = '╭─ '
+        top_right = '─╮'
+        bottom_left = '╰──'
+        bottom_right = '──╯'
+
+        txt = f'{top_left}Step: {self.pname}:{self.name} -- {self.prompt_name}'
+        self.log.info(f"{txt}")
+
+
         try:
             # self.ai.messages = messages
             self.update_gui()
@@ -125,17 +132,15 @@ class Step:
         if self.text_file != '':
             full_path = f"{self.storage_path}/{self.text_file}"
             self.memory[full_path] = self.ai.answer
-            self.log.info(f"Writing {full_path}")
+            self.log.info(f"│ Writing {full_path}")
 
         self.ai.e_stats['elapsed_time'] = time.time() - start_time
-        self.log.info(f"End Step: {pname}:{self.name} -- {self.prompt_name}"
-                      f"\n{head}"
-                      f"Elapsed: {self.ai.e_stats['elapsed_time']:.2f}s Token Usage: "
+        self.log.info(f"│ Elapsed: {self.ai.e_stats['elapsed_time']:.2f}s Token Usage: "
                       f"Total:{int(self.ai.e_stats['total_tokens'])} ("
                       f"Prompt:{int(self.ai.e_stats['prompt_tokens'])}, "
                       f"Completion:{int(self.ai.e_stats['completion_tokens'])})"
                       f"\n{head}"
-                      f"Costs:: Total: ${self.ai.e_stats['s_total']:.2f} "
+                      f"│ Costs:: Total: ${self.ai.e_stats['s_total']:.2f} "
                       f"(Prompt: ${self.ai.e_stats['sp_cost']:.4f}, "
                       f"Completion: ${self.ai.e_stats['sc_cost']:.4f})"
-                      f"\n{head}{'=' * 50}")
+                      f"\n{head}{bottom_left}{'─'*80}")

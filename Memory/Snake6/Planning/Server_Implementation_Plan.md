@@ -2,140 +2,124 @@
 
 This document outlines the implementation plan for the server-side of the Snake Online Game, mapping each requirement to specific functions and detailing the interface and logic of each function.
 
-## 1. Python 3 and Async IO
+## Python 3 and Async IO (Requirement 1)
 
 ### Function: `start_server`
 - **Interface**: `async def start_server(host: str, port: int)`
 - **Logic**:
   - Initialize the main server coroutine.
   - Set up the event loop for asynchronous operations.
-  - Create an instance of `web.Application` and configure routes.
-  - Call `web.run_app` with the application instance.
+  - Call `web.run_app` with the application instance, host, and port.
 
-### Function: `main`
-- **Interface**: `if __name__ == '__main__':`
-- **Logic**:
-  - Entry point of the server script.
-  - Set up error handling for the server startup.
-  - Calls `start_server` with the specified host and port.
-
-## 2. aiohttp Web Server
+## aiohttp Web Server (Requirement 2)
 
 ### Function: `setup_routes`
 - **Interface**: `def setup_routes(app: web.Application)`
 - **Logic**:
-  - Configure routes for static file serving.
-  - Add route for `SnakeClient.html`.
+  - Configure routes for the aiohttp application.
+  - Add a route to serve the SnakeClient.html file.
 
-### Function: `create_app`
-- **Interface**: `def create_app() -> web.Application`
-- **Logic**:
-  - Create an instance of `web.Application`.
-  - Call `setup_routes` to configure the routes.
-  - Return the application instance.
-
-## 3. WebSockets Support
+## WebSockets Support (Requirement 3)
 
 ### Function: `websocket_handler`
 - **Interface**: `async def websocket_handler(request: web.Request)`
 - **Logic**:
   - Establish a WebSocket connection with the client.
-  - Send the initial game status to the client.
-  - Handle incoming messages and disconnections.
-  - Call appropriate functions based on message types.
+  - Handle incoming WebSocket messages and disconnections.
+  - Call appropriate functions based on message types (e.g., `handle_joining`, `handle_direction_change`).
 
-## 4. Game Board Management
+## Game Board Management (Requirement 4)
 
 ### Function: `initialize_game_board`
 - **Interface**: `def initialize_game_board() -> str`
 - **Logic**:
-  - Create a string representing the initial game board state.
-  - Return the game board string.
+  - Create a string representing the initial state of the game board with spaces.
 
-## 5. Game Ticks
+### Function: `update_game_board`
+- **Interface**: `def update_game_board(snake: list, food: list)`
+- **Logic**:
+  - Update the game board with the positions of snakes and food.
+  - Check for collisions and update the game state accordingly.
+
+## Game Ticks (Requirement 5)
 
 ### Function: `game_tick`
 - **Interface**: `async def game_tick()`
 - **Logic**:
-  - Coroutine that runs every 200ms (5 ticks per second).
-  - Calls functions to move snakes, handle collisions, and update scores.
-  - Sends the updated game status to all clients after each tick.
+  - Perform game logic for each tick, such as moving snakes and handling food.
+  - Send updated game status to all clients.
 
-## 6. Snake Movement and Collision Detection
+## Snake Movement and Collision Detection (Requirement 6)
 
 ### Function: `move_snake`
-- **Interface**: `def move_snake(snake: list, direction: tuple) -> tuple`
+- **Interface**: `def move_snake(snake_info: dict)`
 - **Logic**:
   - Calculate the new head position based on the current direction.
-  - Check for collisions and return the new head position or collision status.
+  - Check for collisions and handle snake death if necessary.
 
-## 7. Score and Food Management
+## Score and Food Management (Requirement 7)
 
-### Function: `update_score`
-- **Interface**: `def update_score(client: dict, points: int)`
+### Function: `handle_food_consumption`
+- **Interface**: `def handle_food_consumption(snake_info: dict)`
 - **Logic**:
-  - Increment the client's score by the specified points.
+  - Update the score when a snake eats food.
+  - Add new food to the game board.
 
-### Function: `place_food`
-- **Interface**: `def place_food() -> tuple`
-- **Logic**:
-  - Find a random empty position on the game board.
-  - Place food at that position and return its coordinates.
-
-## 8. Client Management
+## Client Management (Requirement 8)
 
 ### Function: `assign_snake_character`
-- **Interface**: `def assign_snake_character(client: dict)`
+- **Interface**: `def assign_snake_character(username: str) -> str`
 - **Logic**:
-  - Assign a free snake character to the client.
-  - Update the list of free snake characters.
+  - Assign a free snake character to a new client.
+  - Update the list of available characters.
 
 ### Function: `reset_client`
-- **Interface**: `def reset_client(client: dict)`
+- **Interface**: `def reset_client(username: str)`
 - **Logic**:
   - Reset the client's snake to a random position.
-  - Set the client's score to zero and direction to "Stop".
+  - Set the score to zero and direction to "Stop".
 
-## 9. Handling Client Messages
+## Handling Client Messages (Requirement 9)
 
 ### Function: `handle_joining`
-- **Interface**: `def handle_joining(client: dict, username: str)`
+- **Interface**: `def handle_joining(username: str)`
 - **Logic**:
-  - Assign a snake character to the client.
-  - Call `reset_client` to initialize the client's state.
+  - Process the "Joining" message from a client.
+  - Assign a character and reset the client's game state.
 
 ### Function: `handle_direction_change`
-- **Interface**: `def handle_direction_change(client: dict, direction: str)`
+- **Interface**: `def handle_direction_change(username: str, direction: str)`
 - **Logic**:
-  - Update the client's direction based on the received message.
+  - Update the direction of the client's snake based on the message.
 
-## 10. Client Disconnection
+## Client Disconnection (Requirement 10)
 
 ### Function: `handle_disconnection`
-- **Interface**: `def handle_disconnection(client: dict)`
+- **Interface**: `def handle_disconnection(username: str)`
 - **Logic**:
-  - Return the client's snake character to the pool.
-  - Remove the client's snake from the game board.
-  - Inform other clients about the disconnection.
+  - Handle client disconnection.
+  - Return the snake character to the pool and remove the snake from the game board.
 
-## 11. Sending Game Status
+## Sending Game Status (Requirement 11)
 
 ### Function: `send_game_status`
-- **Interface**: `async def send_game_status(clients: dict)`
+- **Interface**: `async def send_game_status()`
 - **Logic**:
-  - Send the current game status to all connected clients in the format specified in `Messages.md`.
+  - Send the current game status to all connected clients.
 
-## 12. HTTP Server Startup
+## HTTP Server Startup (Requirement 12)
 
-### Function: `serve_client_html`
-- **Interface**: `async def serve_client_html(request: web.Request)`
+### Function: `run_http_server`
+- **Interface**: `def run_http_server()`
 - **Logic**:
-  - Serve the `SnakeClient.html` file to clients.
+  - Start the HTTP server to serve the SnakeClient.html file.
 
-## 13. Error Handling
+## Error Handling (Requirement 13)
 
 ### Function: `handle_exceptions`
 - **Interface**: `def handle_exceptions(exception: Exception)`
 - **Logic**:
   - Log the exception.
   - Ensure the server continues to operate for other clients.
+
+Each function will be extensively documented with docstrings, detailing the parameters, return values, and any exceptions that may be raised.

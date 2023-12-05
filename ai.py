@@ -194,14 +194,28 @@ class AI:
 
     async def generate(self, step, user_messages: list[dict[str, str]]):
 
+        top_left = '╭─ '
+        top_right = '─╮'
+        bottom_left = '╰──'
+        bottom_right = '──╯'
+
         self.answer = f'Log of Step: {step.name} : {step.prompt_name}\n'
         pricing = OpenAI_API_Costs[self.model]
 
+        box_open = False
+
         while user_messages:
+            if box_open:
+                self.log.stop_step(step)
+                box_open = False
+            self.log.start_step(step)
+            box_open = True
+
             msg = user_messages.pop(0)
-            if msg['role'] != 'exec':
+            while msg['role'] != 'exec':
                 self.messages.append(msg)
-                self.log.msg(step, msg)
+                self.log.umsg(step, msg)
+                msg = user_messages.pop(0)
                 continue
 
             repeat = True
@@ -231,18 +245,18 @@ class AI:
                     self.answer = f"{self.answer}\n\n - {response_message['content']}"
 
                 self.messages.append(response_message)
-                self.log.msg(step, response_message)  # Display with last message
+                self.log.ai_msg(step, response_message)  # Display with last message
                 if ai_response.choices[0].finish_reason == 'function_call':
                     new_msg = await self.available_functions[function_name](self, **function_args)
                     self.messages.append(new_msg)
-                    self.log.msg(step, new_msg)
+                    self.log.ret_msg(step, new_msg)
                     repeat = True
                 else:
                     if response_message['content'] and response_message['content'].lower().endswith("continue?"):
                         repeat = True
                         msg = {'role': 'user', 'content': 'Continue.'}
                         self.messages.append(msg)
-                        self.log.msg(step, msg)
+                        self.log.ai_msg(step, msg)
 
                 # Gather Answer
                 self.e_stats['prompt_tokens'] = \
@@ -253,6 +267,7 @@ class AI:
         self.e_stats['sp_cost'] = pricing['input'] * (self.e_stats['prompt_tokens'] / 1000.0)
         self.e_stats['sc_cost'] = pricing['output'] * (self.e_stats['completion_tokens'] / 1000.0)
         self.e_stats['s_total'] = self.e_stats['sp_cost'] + self.e_stats['sc_cost']
+        self.log.stop_step(step)
 
         return self.answer
 
