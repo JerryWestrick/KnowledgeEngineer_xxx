@@ -97,21 +97,30 @@
 
 7. Handling Server Messages
 
-- Function: `handleSnakeDiedMessage()`
+- Function: `handleJoiningMessage(message)`
+
+   This function will handle the "Joining" message received from the server.
+
+   ```python
+   def handleJoiningMessage(message):
+       # Implementation details
+   ```
+
+- Function: `handleSnakeDiedMessage(message)`
 
    This function will handle the "SnakeDied" message received from the server.
 
    ```python
-   def handleSnakeDiedMessage():
+   def handleSnakeDiedMessage(message):
        # Implementation details
    ```
 
-- Function: `handleGameStatusMessage()`
+- Function: `handleGameStatusMessage(message)`
 
-   This function will handle the "GameStatus" message received from the server and update the game board and client list.
+   This function will handle the "GameStatus" message received from the server.
 
    ```python
-   def handleGameStatusMessage():
+   def handleGameStatusMessage(message):
        # Implementation details
    ```
 
@@ -130,53 +139,71 @@
 
 - Function: `designGameBoard()`
 
-   This function will design the visual elements of the game board to make it visually appealing.
+   This function will design the visual elements of the game board.
 
    ```python
    def designGameBoard():
        # Implementation details
    ```
 
-10. Responsiveness
+- Function: `designStatusBar()`
 
-- Function: `handleScreenResize()`
-
-   This function will handle screen resize events and ensure the client interface remains responsive.
+   This function will design the visual elements of the status bar.
 
    ```python
-   def handleScreenResize():
+   def designStatusBar():
+       # Implementation details
+   ```
+
+10. Responsiveness
+
+- Function: `handleWindowResize()`
+
+   This function will handle window resize events and update the game board and status bar accordingly.
+
+   ```python
+   def handleWindowResize():
        # Implementation details
    ```
 
 11. Client Initialization
 
-- Function: `initializeClient()`
+- Function: `initializeConnection()`
 
-   This function will handle the initialization process of the client, including connecting to the server and sending the "Joining" message.
+   This function will initialize the connection to the server and handle the joining process.
 
    ```python
-   def initializeClient():
+   def initializeConnection():
        # Implementation details
    ```
 
 12. Client-Side Logic
 
-- Function: `updateGameState()`
+- Function: `updateGameBoard(message)`
 
-   This function will update the game state on the client-side based on the received "GameStatus" message.
+   This function will update the game board based on the "GameStatus" message received from the server.
 
    ```python
-   def updateGameState():
+   def updateGameBoard(message):
+       # Implementation details
+   ```
+
+- Function: `displaySnakeDiedDialog(message)`
+
+   This function will display a pop-up dialog when the "SnakeDied" message is received from the server.
+
+   ```python
+   def displaySnakeDiedDialog(message):
        # Implementation details
    ```
 
 13. Accessibility
 
-- Function: `implementAccessibilityFeatures()`
+- Function: `implementAccessibility()`
 
-   This function will implement accessibility features to ensure the client is accessible to users with disabilities.
+   This function will implement accessibility features for the client.
 
    ```python
-   def implementAccessibilityFeatures():
+   def implementAccessibility():
        # Implementation details
    ```

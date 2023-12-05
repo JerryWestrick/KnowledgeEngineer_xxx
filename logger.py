@@ -25,7 +25,7 @@ class Logger:
     def umsg(self, step, msg: dict):
         content = [f"{msg['content']}"]
         head = f"[green]{self.namespace:>10}::[/][white]│ [/][green]│ [/]"
-        self.logger_widget.write(f"{head}[medium_orchid]{msg['role'] + ' message':>14}[/]:[green]{content}[/]")
+        self.logger_widget.write(f"{head}[medium_orchid]{msg['role'] + ' message':>14}[/] [green]{content}[/]")
 
     def ai_msg(self, step, msg: dict):
         hcolor = 'deep_sky_blue1'
@@ -38,13 +38,13 @@ class Logger:
         if 'function_call' in msg.keys():
             arg_str = msg['function_call']['arguments']
             args = json.loads(arg_str)
-            fn = f"[deep_sky_blue1]{msg['function_call']['name']}[/]"
+            fn = f"[deep_sky_blue1]{msg['function_call']['name']:>14}[/]"
             if fn == 'read_file':
-                self.logger_widget.write(f"{head}       {fn}({args['name']})")
+                self.logger_widget.write(f"{head}{fn} ({args['name']})")
             else:
-                self.logger_widget.write(f"{head}       {fn}({args['name']}, ...)[green]{[arg_str]}[/]")
+                self.logger_widget.write(f"{head}{fn} ({args['name']}, ...)[green]{[arg_str]}[/]")
         else:
-            self.logger_widget.write(f"{head}[deep_sky_blue1]{'AI message':>14}[/]:[green]{content}[/]")
+            self.logger_widget.write(f"{head}[deep_sky_blue1]{'AI message':>14}[/] [green]{content}[/]")
 
     def ret_msg(self, step, msg: dict):
         hcolor = 'green'
@@ -54,7 +54,7 @@ class Logger:
 
         head = f"[green]{self.namespace:>10}::[/][white]│ [/][green]│ [/]"
 
-        self.logger_widget.write(f"{head}           [medium_orchid]rtn[/]:[green]{content}[/]")
+        self.logger_widget.write(f"{head}           [medium_orchid]rtn[/] [green]{content}[/]")
 
     def __init__(self, namespace: str, debug: bool = True):
         self.namespace = namespace

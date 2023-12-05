@@ -116,6 +116,7 @@ class Step:
 
         txt = f'{top_left}Step: {self.pname}:{self.name} -- {self.prompt_name}'
         self.log.info(f"{txt}")
+        self.log.info(f"│ Model: {self.ai.model}, Temperature: {self.ai.temperature}, Max Tokens: {self.ai.max_tokens:,}")
 
 
         try:
@@ -134,11 +135,22 @@ class Step:
             self.memory[full_path] = self.ai.answer
             self.log.info(f"│ Writing {full_path}")
 
+
+        total_tokens= (int(self.ai.e_stats['prompt_tokens']) + int(self.ai.e_stats['completion_tokens']))
+        self.ai.e_stats['total_tokens'] = total_tokens
+        if total_tokens > int(self.ai.max_tokens):
+            wcolor = "dark_orange3"
+        else:
+            wcolor = "green"
+
         self.ai.e_stats['elapsed_time'] = time.time() - start_time
-        self.log.info(f"│ Elapsed: {self.ai.e_stats['elapsed_time']:.2f}s Token Usage: "
-                      f"Total:{int(self.ai.e_stats['total_tokens'])} ("
-                      f"Prompt:{int(self.ai.e_stats['prompt_tokens'])}, "
-                      f"Completion:{int(self.ai.e_stats['completion_tokens'])})"
+        mins, secs = divmod(self.ai.e_stats['elapsed_time'], 60)
+
+
+        self.log.info(f"│ Elapsed: {int(mins)}m {secs:.2f}s Token Usage: "
+                      f"Total: [{wcolor}]{total_tokens:,}[/] ("
+                      f"Prompt: {int(self.ai.e_stats['prompt_tokens']):,}, "
+                      f"Completion: {int(self.ai.e_stats['completion_tokens']):,})"
                       f"\n{head}"
                       f"│ Costs:: Total: ${self.ai.e_stats['s_total']:.2f} "
                       f"(Prompt: ${self.ai.e_stats['sp_cost']:.4f}, "

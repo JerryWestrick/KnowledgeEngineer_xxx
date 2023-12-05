@@ -104,7 +104,7 @@ class AI:
         result = await succeed({'role': 'function', 'name': 'write_file', 'content': 'Done.'})
         return result
 
-    async def replace_function(self, file_name: str, old_code: str, new_code: str) -> dict:
+    async def replace(self, file_name: str, old_code: str, new_code: str) -> dict:
         try:
             # Reading the entire file content
             file_contents = self.memory.read(file_name)
@@ -162,10 +162,10 @@ class AI:
             },
         },
         {
-            "name": "replace_function",
+            "name": "replace",
             "description": "In the file named file_name,"
-                           "search for a function called function_name with old definition of old_code, "
-                           "and replace it with the new definition of new_code",
+                           "search for text 'old_code', "
+                           "and replace it with 'new_code'",
             "parameters": {
                 "type": "object",
                 "properties": {
@@ -189,7 +189,7 @@ class AI:
     available_functions = {
         "read_file": read_file,
         "write_file": write_file,
-        "replace_function": replace_function,
+        "replace": replace,
     }
 
     async def generate(self, step, user_messages: list[dict[str, str]]):
