@@ -116,7 +116,7 @@ class Step:
 
         txt = f'{top_left}Step: {self.pname}:{self.name} -- {self.prompt_name}'
         self.log.info(f"{txt}")
-        self.log.info(f"│ Model: {self.ai.model}, Temperature: {self.ai.temperature}, Max Tokens: {self.ai.max_tokens:,}")
+        self.log.info(f"│ Model: {self.ai.model}, Temperature: {self.ai.temperature}, Max Tokens: {int(self.ai.max_tokens):,}")
 
 
         try:
