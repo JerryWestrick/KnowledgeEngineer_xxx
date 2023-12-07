@@ -54,11 +54,11 @@ Okay, what now?
 
 ## Breaking The problem into Pieces
 
-We need to manage the Knowledge, We need to break the problem into the steps.  Each step needs to use specific inputs designed exactly for that step.  The problem within the step needs to be singularly focused on one problem.  Each output needs to be designed for the next step. We need a system that is strictly top down and does not need previous contexts to do the next step.  each step is its own problem domain.  ***We need...***
+We need to manage the Knowledge, We need to break the problem into the steps.  Each step needs to use specific inputs designed exactly for that step.  The problem within the step needs to be singularly focused on one problem.  Each output needs to be designed for the next step. We need a system that is strictly top down and does not need previous contexts to do the next step.  each step is its own problem domain.  
 
-***The WaterFall Technique*** 
+***We need... The WaterFall Technique*** 
 
-***What? Oh... YES!*** 
+***What?   Oh... YES!*** 
 
 It is the best studied/understood form of IT development.  Each step in the process has very detailed designed inputs and outputs. The disadvantage of having to restart at the beginning, if an input to a previous step is changed, is exactly what we need here.  
 
