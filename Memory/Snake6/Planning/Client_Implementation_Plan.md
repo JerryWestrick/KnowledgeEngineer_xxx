@@ -28,7 +28,7 @@
 
 - Function: `promptForUsername()`
 
-   This function will prompt the user to enter a username.
+   This function will prompt the user to enter a username for the game.
 
    ```python
    def promptForUsername():
@@ -88,7 +88,7 @@
 
 - Function: `detectArrowKeyPress()`
 
-   This function will detect arrow key presses and send the corresponding "DirectionChange" message to the server.
+   This function will detect arrow key presses and send the corresponding direction change message to the server.
 
    ```python
    def detectArrowKeyPress():
@@ -97,30 +97,21 @@
 
 7. Handling Server Messages
 
-- Function: `handleJoiningMessage(message)`
+- Function: `handleSnakeDiedMessage()`
 
-   This function will handle the "Joining" message received from the server.
+   This function will handle the SnakeDied message received from the server.
 
    ```python
-   def handleJoiningMessage(message):
+   def handleSnakeDiedMessage():
        # Implementation details
    ```
 
-- Function: `handleSnakeDiedMessage(message)`
+- Function: `handleGameStatusMessage()`
 
-   This function will handle the "SnakeDied" message received from the server.
-
-   ```python
-   def handleSnakeDiedMessage(message):
-       # Implementation details
-   ```
-
-- Function: `handleGameStatusMessage(message)`
-
-   This function will handle the "GameStatus" message received from the server.
+   This function will handle the GameStatus message received from the server and update the game board and client list.
 
    ```python
-   def handleGameStatusMessage(message):
+   def handleGameStatusMessage():
        # Implementation details
    ```
 
@@ -139,71 +130,53 @@
 
 - Function: `designGameBoard()`
 
-   This function will design the visual elements of the game board.
+   This function will design the visual elements of the game board to make it visually appealing.
 
    ```python
    def designGameBoard():
        # Implementation details
    ```
 
-- Function: `designStatusBar()`
-
-   This function will design the visual elements of the status bar.
-
-   ```python
-   def designStatusBar():
-       # Implementation details
-   ```
-
 10. Responsiveness
 
-- Function: `handleWindowResize()`
+- Function: `handleScreenResize()`
 
-   This function will handle window resize events and update the game board and status bar accordingly.
+    This function will handle screen resize events and adjust the game board and status bar accordingly.
 
-   ```python
-   def handleWindowResize():
-       # Implementation details
-   ```
+    ```python
+    def handleScreenResize():
+        # Implementation details
+    ```
 
 11. Client Initialization
 
-- Function: `initializeConnection()`
+- Function: `initializeClient()`
 
-   This function will initialize the connection to the server and handle the joining process.
+    This function will initialize the client by connecting to the server, prompting for a username, and handling the joining process.
 
-   ```python
-   def initializeConnection():
-       # Implementation details
-   ```
+    ```python
+    def initializeClient():
+        # Implementation details
+    ```
 
 12. Client-Side Logic
 
-- Function: `updateGameBoard(message)`
+- Function: `updateGameState()`
 
-   This function will update the game board based on the "GameStatus" message received from the server.
+    This function will update the game state on the client-side based on the received GameStatus message from the server.
 
-   ```python
-   def updateGameBoard(message):
-       # Implementation details
-   ```
-
-- Function: `displaySnakeDiedDialog(message)`
-
-   This function will display a pop-up dialog when the "SnakeDied" message is received from the server.
-
-   ```python
-   def displaySnakeDiedDialog(message):
-       # Implementation details
-   ```
+    ```python
+    def updateGameState():
+        # Implementation details
+    ```
 
 13. Accessibility
 
 - Function: `implementAccessibility()`
 
-   This function will implement accessibility features for the client.
+    This function will implement accessibility features to make the client accessible for users with disabilities.
 
-   ```python
-   def implementAccessibility():
-       # Implementation details
-   ```
+    ```python
+    def implementAccessibility():
+        # Implementation details
+    ```

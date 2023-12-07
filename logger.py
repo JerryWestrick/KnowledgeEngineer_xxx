@@ -12,8 +12,6 @@ class Logger:
     bottom_left = '╰──'
     bottom_right = '──╯'
 
-
-
     def start_step(self, step):
         head = f"[green]{self.namespace:>10}::[/][white]│ [/]"
         self.logger_widget.write(f"{head}[green]{self.top_left}{'─' * 80}[/]")
@@ -28,9 +26,6 @@ class Logger:
         self.logger_widget.write(f"{head}[medium_orchid]{msg['role'] + ' message':>14}[/] [green]{content}[/]")
 
     def ai_msg(self, step, msg: dict):
-        hcolor = 'deep_sky_blue1'
-        role = msg['role']
-        hrole = f"({role:9})"
         content = [f"{msg['content']}"]
 
         head = f"[green]{self.namespace:>10}::[/][white]│ [/][green]│ [/]"

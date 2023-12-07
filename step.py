@@ -152,7 +152,7 @@ class Step:
                       f"Prompt: {int(self.ai.e_stats['prompt_tokens']):,}, "
                       f"Completion: {int(self.ai.e_stats['completion_tokens']):,})"
                       f"\n{head}"
-                      f"│ Costs:: Total: ${self.ai.e_stats['s_total']:.2f} "
+                      f"│ Costs:: Total: [green]${self.ai.e_stats['s_total']:.2f}[/] "
                       f"(Prompt: ${self.ai.e_stats['sp_cost']:.4f}, "
                       f"Completion: ${self.ai.e_stats['sc_cost']:.4f})"
                       f"\n{head}{bottom_left}{'─'*80}")

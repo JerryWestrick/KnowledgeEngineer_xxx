@@ -36,3 +36,5 @@ typing_extensions==4.8.0
 uc-micro-py==1.0.2
 yarl==1.9.3
 zipp==3.17.0
+
+watchdog~=3.0.0

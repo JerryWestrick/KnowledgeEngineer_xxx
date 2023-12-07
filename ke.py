@@ -5,6 +5,7 @@ from typing import Any
 from rich.style import Style
 from textual import on
 from textual.app import App, ComposeResult, CSSPathType
+from textual.binding import BindingType, Binding
 from textual.command import Provider, Hits, Hit
 from textual.containers import Grid, Horizontal
 from textual.events import MouseDown, Click, MouseMove, Enter, Leave, MouseCapture, MouseUp, Key
@@ -19,6 +20,10 @@ from db import DB
 from logger import Logger
 from step import Step
 from processes import ProcessList, ProcessList_save
+
+from watchdog.observers import Observer
+from watchdog.events import FileSystemEventHandler
+
 
 from tree_sitter_languages import get_language
 
@@ -208,6 +213,8 @@ class StepEditor(Static):
     @on(Button.Pressed, "#step_exec_btn")
     def exec_step(self):
         self.post_message(StepAction("Execute", self.pname, self.step.name))
+
+
 class ProcessCommands(Provider):
     """A command provider to Select/Execute A Process or a Step
        Or to edit a file...
@@ -291,10 +298,55 @@ class ProcessEditor(Static):
             self.post_message(StepAction("Select", e.node.parent.label, e.node.label))
 
 
+class DirectoryChange(Message):
+    """Notification of a change within a Directory"""
+
+    def __init__(self, path: str, event_type: str):
+        super().__init__()
+        self.path: str = path
+        self.path: str = event_type
+
+class ThreadedEventHandler(FileSystemEventHandler):
+    """
+        This class is called from with in the watchdog THREAD...
+        It can only call the functions:
+        - post_message() and
+        - call_from_thread()
+    """
+    def __init__(self, widget: Widget):
+        self.widget: Widget = widget
+
+    def on_created(self, event):
+        self.widget.post_message(DirectoryChange(event.src_path, "created"))
+
+    def on_deleted(self, event):
+        self.widget.post_message(DirectoryChange(event.src_path, "deleted"))
+
+    def handle_event(self, event, event_type):
+        # Handle the event (file created or deleted)
+        print(f"File {event.src_path} was {event_type}")
+
+
+
 class DirTree(DirectoryTree):
-    wlog: Logger = Logger(namespace="DirTree", debug=False)
+    wlog: Logger = Logger(namespace="DirTree", debug=True)
     selected_file: str | None = None
     selected_directory: str | None = None
+
+    # These are values used in a separate thread and not
+    # to be used within normal Textual code
+
+
+
+    BINDINGS: list[BindingType] = [
+        Binding("enter", "select_cursor", "Select", show=False),
+        Binding("space", "toggle_node", "Toggle", show=False),
+        Binding("up", "cursor_up", "Cursor Up", show=False),
+        Binding("down", "cursor_down", "Cursor Down", show=False),
+        Binding("shift+delete", "shift+delete", "Cut", show=True),
+        Binding("insert", "insert", "Paste", show=True),
+        Binding("ctrl+delete", "ctrl+delete", "Copy", show=True),
+    ]
 
     @on(DirectoryTree.FileSelected)
     def file_selected(self, fs: DirectoryTree.FileSelected):
@@ -321,9 +373,17 @@ class DirTree(DirectoryTree):
     @on(Key)
     def check_key_event(self, event: Key):
         self.wlog.info(f"Key({event}")
-        if event.key == 'ctrl+o':
-            self.set_clipboard()
-            event.stop()
+        match event.key:
+            case 'ctrl+o':
+                self.set_clipboard()
+                event.stop()
+
+            case 'delete':
+                pass
+
+            case 'insert':
+                pass
+
 
     def set_clipboard(self):
         c = {}
@@ -462,7 +522,6 @@ class KEApp(App):
     BINDINGS = [
         ('d', 'toggle_dark', "Toggle dark mode"),
         ('q', 'quit', "Quit Application"),
-        ('p', 'procs', "Dump Processes")
     ]
     CSS_PATH = "ke.tcss"
     COMMANDS = App.COMMANDS | {ProcessCommands}
@@ -511,21 +570,3 @@ class KEApp(App):
 if __name__ == "__main__":
     keapp = KEApp()
     keapp.run()
-# @Done Add file browser/editor windows...
-# @Done fix costs estimation...
-# @Todo Directory Watcher...
-# @Todo Fix Snake6 process
-# @Todo Make Documentation
-# @Done command Execute locks screen, while Button Execute frees it
-# @Todo allow parallel conversations to chatGPT.
-# @Done change logging of chat msgs to show conversation (to allow for above)
-# @Done drop down for Model
-# @Done Implemented Copy Paste.... StepEditor: Prompt Name, Storage Path, Text File need file selectors
-# @Todo StepEditor: Temperature and Max Tokens need validation
-# @Todo Fix execute Process
-# @Done File Editor is a MarkdownViewer.  Need an editor for markdown, and a separate editor for text Files.
-# @Todo Look into syntax highlighting .pe files, still stuck
-# @Todo Change log to show a list of messages so that you can click on a message to give a Pop-Up with full contents
-# @Done Save button for Step Editor
-# @Todo When using the command interface: To Edit a document, the document is not selected in the Knowledge Storage Tree
-# @Todo When using gpt-3.5-turbo, the AI answers with a message(assistant)['None'] instead of a real message.  This creates an error if you send the 'None' message back to the conversatoin

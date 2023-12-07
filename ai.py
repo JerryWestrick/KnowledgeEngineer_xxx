@@ -104,16 +104,16 @@ class AI:
         result = await succeed({'role': 'function', 'name': 'write_file', 'content': 'Done.'})
         return result
 
-    async def replace(self, file_name: str, old_code: str, new_code: str) -> dict:
+    async def replace(self, name: str, old_code: str, new_code: str) -> dict:
         try:
             # Reading the entire file content
-            file_contents = self.memory.read(file_name)
+            file_contents = self.memory.read(name)
 
             # Replacing old code with new code
             updated_contents = file_contents.replace(old_code, new_code)
 
             # Writing the updated content back to the file
-            self.memory[file_name] = updated_contents
+            self.memory[name] = updated_contents
 
             result = await succeed({'role': 'function',
                                     'name': 'replace_function',
@@ -163,13 +163,13 @@ class AI:
         },
         {
             "name": "replace",
-            "description": "In the file named file_name,"
+            "description": "In the file named name,"
                            "search for text 'old_code', "
                            "and replace it with 'new_code'",
             "parameters": {
                 "type": "object",
                 "properties": {
-                    "file_name": {
+                    "name": {
                         "type": "string",
                         "description": "The name of the file to be modified",
                     },
@@ -182,7 +182,7 @@ class AI:
                         "description": "the lines of code of the new function definition",
                     },
                 },
-                "required": ["file_name", "old_code", "new_code"],
+                "required": ["name", "old_code", "new_code"],
             },
         }
     ]
@@ -193,11 +193,6 @@ class AI:
     }
 
     async def generate(self, step, user_messages: list[dict[str, str]]):
-
-        top_left = '╭─ '
-        top_right = '─╮'
-        bottom_left = '╰──'
-        bottom_right = '──╯'
 
         self.answer = f'Log of Step: {step.name} : {step.prompt_name}\n'
         pricing = OpenAI_API_Costs[self.model]
@@ -256,7 +251,7 @@ class AI:
                         repeat = True
                         msg = {'role': 'user', 'content': 'Continue.'}
                         self.messages.append(msg)
-                        self.log.ai_msg(step, msg)
+                        self.log.umsg(step, msg)
 
                 # Gather Answer
                 self.e_stats['prompt_tokens'] = \
