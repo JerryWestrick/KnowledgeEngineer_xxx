@@ -58,7 +58,9 @@ We need to manage the Knowledge, We need to break the problem into the steps.  E
 
 ***The WaterFall Technique*** 
 
-What?  yes, It is the best studied/understood form of IT programming.  each step in the process has very detailed designed inputs and outputs. The disadvantage of having to restart at the beginning, if an input to a previous step is changed, is exactly what we need here.  
+***What? Oh... YES!*** 
+
+It is the best studied/understood form of IT development.  Each step in the process has very detailed designed inputs and outputs. The disadvantage of having to restart at the beginning, if an input to a previous step is changed, is exactly what we need here.  
 
 Okay lets look at the following over simplified example:  
 
