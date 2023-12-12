@@ -24,3 +24,5 @@ OpenAI_API_Costs = {
     #     {'model': 'text-ada-001', 'title': 'ada (fastest)',
     #      'RPM': 3000, 'TPM': 250000, 'input': 0.0004, 'output': 0.0004}
 }
+
+

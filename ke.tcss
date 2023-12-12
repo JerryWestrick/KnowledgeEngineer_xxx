@@ -115,7 +115,12 @@ Grid {
     layout: grid;
     grid-size: 2;
     grid-columns: 2fr 5fr;
-    grid_rows: 12 48 auto;
+    grid_rows: 12 2fr 5fr;
     color: white;
 }
+
+
+
+
+
 
