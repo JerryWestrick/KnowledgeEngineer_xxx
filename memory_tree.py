@@ -12,7 +12,7 @@ from dialogs.input_dialog import Input_Dialog
 from dialogs.popup_menu import PopUpMenu
 from dialogs.yes_no_dialog import YesNoDialog
 from logger import Logger
-from messages import FileAction, FileActionCmd
+from file_editor import FileEditor, FileActionCmd
 
 
 class DirTree(DirectoryTree):
@@ -46,7 +46,7 @@ class DirTree(DirectoryTree):
         self.wlog.info(f"Create new file {new_file_name} as sibling of path/file: {old_file_name}")
         self.wlog.info(f"Create new file {new_file_path}")
         open("Memory/" + new_file_path, 'a').close()  # Create the new file
-        self.post_message(FileAction('View', new_file_path))
+        self.post_message(FileEditor.FileAction('View', new_file_path))
 
     @on(DirectoryTree.DirectorySelected)
     def directory_selected(self, fs: DirectoryTree.DirectorySelected):
@@ -64,7 +64,7 @@ class DirTree(DirectoryTree):
 
         match keywords[0]:
             case 'View' | 'Edit' | 'Delete':
-                self.post_message(FileAction(keywords[0], path))
+                self.post_message(FileEditor.FileAction(keywords[0], path))
 
             case 'New':
                 self.app.push_screen(
@@ -195,6 +195,6 @@ class MemoryTree(Static):
     @on(DirectoryTree.FileSelected)
     def file_selected(self, fs: DirectoryTree.FileSelected):
         fs.prevent_default()
-        self.post_message(FileAction(FileActionCmd.VIEW, self.dirtree.selected_file))
+        self.post_message(FileEditor.FileAction(FileActionCmd.VIEW, self.dirtree.selected_file))
 
 

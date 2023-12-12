@@ -1,12 +1,22 @@
 from textual.app import App
+from textual.message import Message
 from textual.worker import Worker
 from watchdog.events import FileSystemEventHandler
 from watchdog.observers import Observer
 
-from messages import FileSystemChangeMessage, Info
+from messages import Info
 
 
 class FSEHandler(FileSystemEventHandler):
+    class FileSystemChangeMessage(Message):
+        """ A Notification of a change to a directory"""
+
+        def __init__(self, event_type: str, is_directory: bool, src_path: str, dst_path: str = None):
+            super().__init__()
+            self.event_type: str = event_type
+            self.is_directory: bool = is_directory
+            self.src_path: str = src_path
+            self.dst_path: str = dst_path
 
     def __init__(self, app: App) -> None:
         super().__init__()

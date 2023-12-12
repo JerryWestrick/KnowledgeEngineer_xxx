@@ -1,12 +1,12 @@
 from textual import on
 from textual.app import ComposeResult
 from textual.containers import Grid, Horizontal
+from textual.message import Message
 from textual.widgets import Static, Label, Select, Button, Input
 
 from OpenAI_API_Costs import OpenAI_API_Costs
 from input_copypaste import InputCP
 from logger import Logger
-from messages import StepAction
 from processes import ProcessList, ProcessList_save
 from step import Step
 
@@ -16,6 +16,15 @@ class StepEditor(Static):
     pname: str = ''
     step: Step | None = None
     changes_are_internal: bool = False
+
+    class StepAction(Message):
+        """Step selected message."""
+
+        def __init__(self, cname: str, pname: str, sname: str) -> None:
+            self.cname: str = str(cname)
+            self.pname: str = str(pname)
+            self.sname: str = str(sname)
+            super().__init__()
 
     def compose(self) -> ComposeResult:
         self.border_title = 'Step Editor'
@@ -141,6 +150,6 @@ class StepEditor(Static):
 
     @on(Button.Pressed, "#step_exec_btn")
     def exec_step(self):
-        self.post_message(StepAction("Execute", self.pname, self.step.name))
+        self.post_message(self.StepAction("Execute", self.pname, self.step.name))
 
 

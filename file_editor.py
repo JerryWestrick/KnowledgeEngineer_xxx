@@ -1,18 +1,35 @@
 import os
+from enum import Enum
 
 from textual import on
 from textual.app import ComposeResult
 from textual.containers import Horizontal
+from textual.message import Message
 from textual.widgets import Static, MarkdownViewer, TextArea, Button
 
 from db import DB
 from logger import Logger
-from messages import FileAction
+
+
+class FileActionCmd(Enum):
+    CREATE = "CREATE"
+    DELETE = "DELETE"
+    MOVE = "MOVE"
+    UPDATE = "UPDATE"
+    VIEW = "VIEW"
+    EDIT = "EDIT"
+    RENAME = "RENAME"
 
 
 class FileEditor(Static):
     db: DB = DB("Memory")
     wlog: Logger = Logger(namespace="FileEditor", debug=False)
+
+    class FileAction(Message):
+        def __init__(self, cmd: FileActionCmd, name: str):
+            super().__init__()
+            self.cmd = cmd
+            self.name = name
 
     # pel = get_language("promptengineer")
 
@@ -100,11 +117,11 @@ class FileEditor(Static):
 
     @on(Button.Pressed, selector="#edit_btn")
     def switch_to_edit_mode(self):
-        self.post_message(FileAction("Edit", self.pathname))
+        self.post_message(self.FileAction("Edit", self.pathname))
 
     @on(Button.Pressed, selector="#view_btn")
     def switch_to_view_mode(self):
-        self.post_message(FileAction("View", self.pathname))
+        self.post_message(self.FileAction("View", self.pathname))
 
     @on(Button.Pressed, selector="#save_btn")
     def save_file(self):

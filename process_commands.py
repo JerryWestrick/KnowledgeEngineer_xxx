@@ -7,9 +7,11 @@ from textual.command import Provider, Hits, Hit
 from textual.screen import Screen
 
 from db import DB
+from file_editor import FileEditor
 from logger import Logger
-from messages import StepAction, FileAction
 from processes import ProcessList
+from step_editor import StepEditor
+
 
 
 class ProcessCommands(Provider):
@@ -63,12 +65,12 @@ class ProcessCommands(Provider):
                     yield Hit(
                         score,
                         matcher.highlight(path),
-                        partial(app.on_step_action, StepAction(command, pname, sname)),
+                        partial(app.on_step_action, StepEditor.StepAction(command, pname, sname)),
                     )
                 elif command in ['Edit', 'View']:
                     yield Hit(
                         score,
                         matcher.highlight(path),
-                        partial(app.on_file_action, FileAction(command, f"{rest}")),
+                        partial(app.on_file_action, FileEditor.FileAction(command, f"{rest}")),
                     )
 

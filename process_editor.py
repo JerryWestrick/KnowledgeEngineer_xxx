@@ -2,8 +2,8 @@ from textual.app import ComposeResult
 from textual.widgets import Static, Tree
 
 from logger import Logger
-from messages import StepAction
 from processes import ProcessList
+from step_editor import StepEditor
 
 
 class ProcessEditor(Static):
@@ -25,6 +25,6 @@ class ProcessEditor(Static):
         # self.wlog.info(f"Selected: {e.node.label} {len(e.node.children)} children")
         if e.node.data:
             # self.wlog.info(f"Selected: {e.node.data.prompt_name}")
-            self.post_message(StepAction("Select", e.node.parent.label, e.node.label))
+            self.post_message(StepEditor.StepAction("Select", e.node.parent.label, e.node.label))
 
 

@@ -10,7 +10,7 @@ from memory_tree import MemoryTree
 from file_editor import FileEditor
 from file_system_event_handler import FSEHandler
 from logger import Logger
-from messages import FileAction, StepAction, FileSystemChangeMessage, Info
+from messages import Info
 from process_commands import ProcessCommands
 from process_editor import ProcessEditor
 from step_editor import StepEditor
@@ -56,18 +56,19 @@ class KEApp(App):
 
         self.wlog.info(f"Processes Loaded")
 
-    async def on_step_action(self, s: StepAction):
-        # self.wlog.info(f"Got SelectStep('{s.cname}', '{s.pname}','{s.sname}')")
+    @on(StepEditor.StepAction)
+    async def on_step_action(self, s: StepEditor.StepAction):
         if s.sname != '':
             await self.step_editor.step_action(s)
 
-    async def on_file_action(self, f: FileAction):
+    @on(FileEditor.FileAction)
+    async def on_file_action(self, f: FileEditor.FileAction):
         self.wlog.info(f"Got FileAction('{f.cmd}', '{f.name}')")
         if f.name != '':
             await self.file_editor.file_action(f)
 
-    @on(FileSystemChangeMessage)
-    def fs_change(self, fs: FileSystemChangeMessage):
+    @on(FSEHandler.FileSystemChangeMessage)
+    def fs_change(self, fs: FSEHandler.FileSystemChangeMessage):
         match fs.event_type:
             case 'created':
                 pass
