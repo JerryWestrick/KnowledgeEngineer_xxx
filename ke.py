@@ -8,7 +8,7 @@ from memory_tree import MemoryTree,  DirTree
 from file_editor import FileEditor
 from file_system_event_handler import FSEHandler
 from logger import Logger
-from messages import Info
+# from messages import Info
 from process_commands import ProcessCommands, ProcessCommand
 from process_editor import ProcessEditor
 from step_editor import StepEditor
@@ -77,10 +77,10 @@ class KEApp(App):
                        f"dst_path={fs.dst_path}"
                        )
 
-    @on(Info)
-    def log_info(self, msg: Info):
-        self.wlog.info(f"{msg.func:>15}:{msg.msg}")
-        return
+    # @on(Info)
+    # def log_info(self, msg: Info):
+    #     self.wlog.info(f"{msg.func:>15}:{msg.msg}")
+    #     return
 
     async def on_mount(self) -> None:
         self.event_handler = FSEHandler(self)  # Pass the watchdog_screen instance

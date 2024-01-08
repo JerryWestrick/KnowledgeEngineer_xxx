@@ -11,13 +11,17 @@ from textual.events import MouseDown, Key
 from textual.message import Message
 from textual.widgets import DirectoryTree, Static
 from textual.widgets._tree import TreeNode
+from textual.worker import Worker
 
 from db import DB
 from dialogs.inputdialog import InputDialog
 from dialogs.popup_menu import PopUpMenu
 from dialogs.yes_no_dialog import YesNoDialog
 from file_editor import FileEditor, FileActionCmd
+from file_system_event_handler import FSEHandler
 from logger import Logger
+
+from watchdog.observers import Observer
 
 
 class DirectoryActionCmd(Enum):
@@ -295,7 +299,8 @@ class MemoryTree(Static):
 
     def compose(self) -> ComposeResult:
         self.border_title = "Knowledge Storage"
-        self.dirtree = DirTree("./Memory/", name="DirectoryTree", id="directory_tree")
+        self.watchDirectory = "./Memory/"
+        self.dirtree = DirTree(self.watchDirectory, name="DirectoryTree", id="directory_tree")
         yield self.dirtree
 
     @on(DirectoryTree.FileSelected)
@@ -327,3 +332,38 @@ class MemoryTree(Static):
 
             case DirectoryActionCmd.RENAME:
                 pass
+
+    async def on_mount(self) -> None:
+        self.dirtree.root.expand_all()  # Load all the items so that we can access Them when needed
+        self.observer = Observer()
+        self.event_handler = FSEHandler(self)  # Pass the watchdog_screen instance
+        self.observer.schedule(self.event_handler, self.watchDirectory, recursive=True)
+        t = Worker(self, self.observer.start(), name="WatchDog", description="Separate Thread running WatchDog",
+                   thread=True)
+        self.workers.add_worker(t, start=False, exclusive=True)
+
+    @on(FSEHandler.FileSystemChangeMessage)
+    def fs_change(self, fs: FSEHandler.FileSystemChangeMessage):
+        match fs.event_type:
+            case 'created' | 'deleted' | 'moved':
+                pass
+
+            case 'modified':
+                if fs.is_directory:
+                    anode = self.dirtree.root
+                    for child_label in fs.src_path.split('/')[1:]:
+                        for child in anode.children:
+                            if child.label == child_label:
+                                anode = child
+                    self.dirtree.reload_node(anode)
+
+        self.wlog.info(f"{'fs_change':>15}:[cyan]event_type={fs.event_type}, "
+                       f"is_directory={fs.is_directory}, "
+                       f"src_path={fs.src_path}, "
+                       f"dst_path={fs.dst_path}[/]"
+                       )
+
+    @on(FSEHandler.Info)
+    def log_info(self, msg: FSEHandler.Info):
+        self.wlog.info(f"{msg.func:>15}:{msg.msg}")
+        return
