@@ -1,25 +1,37 @@
+import fnmatch
 import os
+import shutil
+from enum import Enum
 from functools import partial
 
-from textual import on
+from textual import on, work
 from textual.app import ComposeResult
 from textual.binding import BindingType, Binding
 from textual.events import MouseDown, Key
+from textual.message import Message
 from textual.widgets import DirectoryTree, Static
 from textual.widgets._tree import TreeNode
 
-from dialogs.input_dialog import Input_Dialog
+from db import DB
+from dialogs.inputdialog import InputDialog
 from dialogs.popup_menu import PopUpMenu
 from dialogs.yes_no_dialog import YesNoDialog
-from logger import Logger
 from file_editor import FileEditor, FileActionCmd
+from logger import Logger
+
+
+class DirectoryActionCmd(Enum):
+    CREATE = "CREATE"
+    DELETE = "DELETE"
+    MOVE = "MOVE"
+    RENAME = "RENAME"
 
 
 class DirTree(DirectoryTree):
     wlog: Logger = Logger(namespace="DirTree", debug=True)
     selected_file: str | None = None
     selected_directory: str | None = None
-
+    db: DB = DB("Memory")
 
     # Have not got these bindings to work yet...
     BINDINGS: list[BindingType] = [
@@ -32,21 +44,40 @@ class DirTree(DirectoryTree):
         Binding("ctrl+delete", "ctrl+delete", "Copy", show=True),
     ]
 
+    class DirectoryAction(Message):
+        def __init__(self, cmd: DirectoryActionCmd, name: str):
+            super().__init__()
+            self.cmd = cmd
+            self.name = name
+
+        def __str__(self) -> str:
+            return f"DirectoryAction(cmd={self.cmd}, name={self.name})"
+
     @on(DirectoryTree.FileSelected)
     def file_selected(self, fs: DirectoryTree.FileSelected):
         path = str(fs.path)
         path = path.replace('Memory/', '')
         self.selected_file = path
         self.selected_directory = None
-        self.wlog.info(f"")
+        self.wlog.info(f"file_selected({path})")
+        self.post_message(FileEditor.FileAction(FileActionCmd.VIEW, path))
 
     def create_new_file(self, old_file_name: str, new_file_name: str) -> None:
         dir_path = os.path.dirname(f"{old_file_name}")  # Extract directory of old file
         new_file_path = os.path.join(dir_path, new_file_name)
-        self.wlog.info(f"Create new file {new_file_name} as sibling of path/file: {old_file_name}")
-        self.wlog.info(f"Create new file {new_file_path}")
+        self.wlog.info(
+            f"create_new_file(old_file_name={old_file_name},new_file_name={new_file_name}):Memory/{new_file_path}")
         open("Memory/" + new_file_path, 'a').close()  # Create the new file
-        self.post_message(FileEditor.FileAction('View', new_file_path))
+        # self.post_message(FileEditor.FileAction(FileActionCmd.VIEW, new_file_path))
+
+    def create_new_dir(self, dir_path: str, dir_name: str) -> None:
+        new_dir_path = f"Memory/{dir_path}/{dir_name}"
+        try:
+            os.mkdir(new_dir_path)  # Create the new directory
+        except FileExistsError:
+            self.wlog.warn(f"Directory '{new_dir_path}' already exists.")
+        except Exception as e:
+            self.wlog.error(f"An error occurred while creating the directory: {e}")
 
     @on(DirectoryTree.DirectorySelected)
     def directory_selected(self, fs: DirectoryTree.DirectorySelected):
@@ -55,7 +86,7 @@ class DirTree(DirectoryTree):
         self.selected_directory = path
         self.selected_file = None
 
-    def do_file_menu_option(self, event: MouseDown, path: str, option: str):
+    async def do_file_menu_option(self, event: MouseDown, path: str, option: str):
         self.wlog.info(f"File Menu: {option} {path}")
         keywords = str(option).split(' ')
         if keywords[1] != 'File':
@@ -63,51 +94,105 @@ class DirTree(DirectoryTree):
             return
 
         match keywords[0]:
-            case 'View' | 'Edit' | 'Delete':
-                self.post_message(FileEditor.FileAction(keywords[0], path))
+            case 'View':
+                self.post_message(FileEditor.FileAction(FileActionCmd.VIEW, path))
+
+            case 'Edit':
+                self.post_message(FileEditor.FileAction(FileActionCmd.EDIT, path))
+
+            case 'Delete':
+                self.post_message(self.DirectoryAction(DirectoryActionCmd.DELETE, path))
 
             case 'New':
-                self.app.push_screen(
-                    Input_Dialog("New File Dialog", "Name of New file:",
-                                 offset=(event.screen_x, event.screen_y)
-                                 ),
-                    partial(self.create_new_file, self.selected_file)
+                new_name = await self.app.push_screen_wait(
+                    InputDialog("New File Dialog", "Name of New file:",
+                                offset=(event.screen_x, event.screen_y)
+                                )
                 )
+                self.create_new_file(None, new_name)
 
-    def do_directory_menu_option(self, path: str, option: str):
-        self.wlog.info(f"Dir Menu: {option} {path}")
+    def find_files(self, directory, pattern):
+        for root, dirs, files in os.walk(directory):
+            for basename in files:
+                if fnmatch.fnmatch(basename, pattern):
+                    filename = os.path.join(root, basename)
+                    yield filename
+
+    async def do_directory_menu_option(self, event: MouseDown, path: str, option: str):
+        self.wlog.info(f"Dir Menu: '{option}' {path}")
+
+        if 'New File' == str(option):
+            self.wlog.info(f"directory_option({option})")
+            new_file_name = await self.app.push_screen_wait(
+                InputDialog("New File Dialog", "Name of New file:",
+                            offset=(event.screen_x, event.screen_y)
+                            )
+            )
+            self.create_new_file(f"{self.selected_directory}/t.tmp", new_file_name)
+            return
+
+        if 'Delete Directory' == str(option):
+            confirmed: bool = await self.app.push_screen_wait(
+                YesNoDialog("Delete Directory with all contents", f"Delete {path}:",
+                            offset=(event.screen_x, event.screen_y)
+                            )
+            )
+            self.delete_directory(self.selected_directory, confirmed)
+            return
+
+        if 'New Sub-Directory' == str(option):
+            self.wlog.info(f"directory_option({option})")
+            new_dir_name = await self.app.push_screen_wait(
+                InputDialog("New Dir Dialog", "Name of New directory:",
+                            offset=(event.screen_x, event.screen_y)
+                            )
+            )
+            self.create_new_dir(self.selected_directory, new_dir_name)
+            return
+
+        if 'Clean Up .~01~. files' == str(option):
+            self.wlog.info(f"directory_option({option})")
+
+            self.db.delete_memory_backup(self.selected_directory)
+            # for filename in self.find_files(f'Memory/{self.selected_directory}', '*.~*~.*'):
+            #     self.wlog.info(f'About to delete {filename}')
+            #     os.remove(filename)
+            return
+
+    @work
+    async def do_popup_menu(self, event: MouseDown):
+        if self.selected_file:
+            file_cmd = await self.app.push_screen_wait(
+                PopUpMenu(
+                    f"Popup File: {self.selected_file}",
+                    ['Delete File', 'View File', 'Edit File', 'New File', ],
+                    offset=(event.screen_x, event.screen_y)
+                )
+            )
+            await self.do_file_menu_option(event, self.selected_file, file_cmd)
+        elif self.selected_directory:
+            menu_cmd = await self.app.push_screen_wait(
+                PopUpMenu(
+                    f"Popup Directory: {self.selected_directory}",
+                    ['Delete Directory', 'New Sub-Directory', 'New File', 'Clean Up .~01~. files'],
+                    offset=(event.screen_x, event.screen_y)
+                )
+            )
+            await self.do_directory_menu_option(event, f"{self.selected_directory}/t.txt", menu_cmd)
 
     @on(MouseDown)
-    def check_event(self, event: MouseDown):
+    async def check_event(self, event: MouseDown):
         self.wlog.info(f"MouseDown({event}")
 
         match event.button:
-
             case 1:
                 if event.ctrl:
                     self.set_clipboard()
                     event.stop()
+
             case 3:
-                if self.selected_file:
-                    self.app.push_screen(
-                        PopUpMenu(
-                            f"Popup File: {self.selected_file}",
-                            ['Delete File', 'View File', 'Edit File', 'New File', ],
-                            offset=(event.screen_x, event.screen_y)
-
-                        ),
-                        partial(self.do_file_menu_option, event, self.selected_file),
-                    )
-                elif self.selected_directory:
-                    self.app.push_screen(
-                        PopUpMenu(
-                            f"Popup Directory: {self.selected_directory}",
-                            ['Delete Directory', 'New Directory After', ],
-                            offset=(event.screen_x, event.screen_y)
-
-                        ),
-                        partial(self.do_directory_menu_option, self.selected_directory),
-                    )
+                self.do_popup_menu(event)
+                event.stop()
 
     @on(Key)
     def check_key_event(self, event: Key):
@@ -157,19 +242,40 @@ class DirTree(DirectoryTree):
                     anode = child
         return anode
 
+    def recurse(self, treenode: TreeNode):
+        children = []
+        for child in treenode.children:
+            children.append(self.recurse(child))
+        return treenode, treenode.is_expanded, children
+
+    def expand_list(self, anode, is_expanded, children):
+
+        self.wlog.info(f"Expanded List: {anode}")
+        if is_expanded:
+            anode.expand()
+
+        for child, is_child_expanded, grand_children in children:
+            self.expand_list(child, is_child_expanded, grand_children)
+
     def delete_file(self) -> None:
         self.wlog.info(f"Delete file: Memory/{self.selected_file}")
+        os.remove(self.selected_file)
         self.selected_file = None
 
-    def delete_directory(self) -> None:
-        self.wlog.info(f"Delete of directory: Memory/{self.selected_directory}")
-        self.selected_directory = None
-        # shutil.rmtree(f"Memory/{path}")
+    def delete_directory(self, path: str, do_it: bool) -> None:
+        if do_it:
+            self.wlog.info(f"Delete of directory: Memory/{path}")
+            shutil.rmtree(f"Memory/{path}")
+            self.selected_directory = None
 
     def reload_path(self, path: str):
-        anode: TreeNode = self.find_node(path)
-        self.reload_node(anode)
-        self.root.expand_all()
+        # rnode, is_expanded, children = self.recurse(self.root)
+        # anode: TreeNode = self.find_node(path)
+        # self.reload_node(anode)  # wait till all is reloaded
+        # self.root.expand_all()
+        # self.wlog.info(f"Back from reload_node")
+        # self.expand_list(rnode, is_expanded, children)
+        pass
 
     def set_clipboard(self):
         c = {}
@@ -195,6 +301,29 @@ class MemoryTree(Static):
     @on(DirectoryTree.FileSelected)
     def file_selected(self, fs: DirectoryTree.FileSelected):
         fs.prevent_default()
-        self.post_message(FileEditor.FileAction(FileActionCmd.VIEW, self.dirtree.selected_file))
+        # self.post_message(FileEditor.DirectoryAction(DirectoryActionCmd.VIEW, self.dirtree.selected_file))
 
+    async def directory_action(self, f: DirTree.DirectoryAction) -> None:
+        self.pathname = f.name
+        ext = os.path.splitext(f.name)[1]
+        self.wlog.info(f"file_action({f.cmd}, '{f.name}')")
 
+        match f.cmd:
+            case DirectoryActionCmd.MOVE:
+                pass
+
+            case DirectoryActionCmd.CREATE:
+                pass
+
+            case DirectoryActionCmd.DELETE:
+                try:
+                    os.remove(f"Memory/{f.name}")
+                except FileNotFoundError:
+                    self.wlog.error("File not found")
+                except PermissionError:
+                    self.wlog.error("Permission denied ")
+                except Exception as e:
+                    self.wlog.error(f"An error occurred while deleting file: {e}")
+
+            case DirectoryActionCmd.RENAME:
+                pass

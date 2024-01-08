@@ -21,6 +21,10 @@ DIRECTION = {
     "Right": (1, 0)
 }
 
+
+
+
+
 # Initial game status
 GameStatus = {
     "game_board": " " * (BOARD_SIZE * BOARD_SIZE),  # 100 strings of 100 spaces

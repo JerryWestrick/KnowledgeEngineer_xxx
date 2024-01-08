@@ -16,8 +16,8 @@ class Step:
 
     def __init__(self,
                  name: str,
-                 prompt_name: str,
-                 ai: AI,
+                 prompt_name: str | None = None,
+                 ai: AI | None = None,
                  verify_prompt: str = '',
                  storage_path: str = '',
                  text_file: str = '',
@@ -26,7 +26,7 @@ class Step:
                  file_glob: str = '',
                  macros: dict[str, str] = None):
         self.name: str = name
-        self.prompt_name: str = prompt_name
+        self.prompt_name: str | None = prompt_name
         self.verify_prompt: str = verify_prompt
         self.storage_path: str = storage_path
         self.text_file: str = text_file
@@ -36,7 +36,10 @@ class Step:
         self.macros: dict[str, str] = macros
         if macros is None:
             self.macros = {}
-        self.ai: AI = ai
+        if ai is None:
+            self.ai: AI()
+        else:
+            self.ai = ai
 
     def to_json(self) -> dict:
         """
@@ -82,8 +85,8 @@ class Step:
         pass
 
     async def run(self, pname):
-        self.pname = pname          # Add name of process to step...
-        self.interaction_no = 0     # start count of interactions with AI
+        self.pname = pname  # Add name of process to step...
+        self.interaction_no = 0  # start count of interactions with AI
         msg = {}
         msgs = []
         start_time = time.time()
@@ -116,8 +119,8 @@ class Step:
 
         txt = f'{top_left}Step: {self.pname}:{self.name} -- {self.prompt_name}'
         self.log.info(f"{txt}")
-        self.log.info(f"│ Model: {self.ai.model}, Temperature: {self.ai.temperature}, Max Tokens: {int(self.ai.max_tokens):,}")
-
+        self.log.info(
+            f"│ Model: {self.ai.model}, Temperature: {self.ai.temperature}, Max Tokens: {int(self.ai.max_tokens):,}")
 
         try:
             # self.ai.messages = messages
@@ -135,8 +138,7 @@ class Step:
             self.memory[full_path] = self.ai.answer
             self.log.info(f"│ Writing {full_path}")
 
-
-        total_tokens= (int(self.ai.e_stats['prompt_tokens']) + int(self.ai.e_stats['completion_tokens']))
+        total_tokens = (int(self.ai.e_stats['prompt_tokens']) + int(self.ai.e_stats['completion_tokens']))
         self.ai.e_stats['total_tokens'] = total_tokens
         if total_tokens > int(self.ai.max_tokens):
             wcolor = "dark_orange3"
@@ -146,7 +148,6 @@ class Step:
         self.ai.e_stats['elapsed_time'] = time.time() - start_time
         mins, secs = divmod(self.ai.e_stats['elapsed_time'], 60)
 
-
         self.log.info(f"│ Elapsed: {int(mins)}m {secs:.2f}s Token Usage: "
                       f"Total: [{wcolor}]{total_tokens:,}[/] ("
                       f"Prompt: {int(self.ai.e_stats['prompt_tokens']):,}, "
@@ -155,4 +156,4 @@ class Step:
                       f"│ Costs:: Total: [green]${self.ai.e_stats['s_total']:.2f}[/] "
                       f"(Prompt: ${self.ai.e_stats['sp_cost']:.4f}, "
                       f"Completion: ${self.ai.e_stats['sc_cost']:.4f})"
-                      f"\n{head}{bottom_left}{'─'*80}")
+                      f"\n{head}{bottom_left}{'─' * 80}")

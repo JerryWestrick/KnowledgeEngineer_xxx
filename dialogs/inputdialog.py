@@ -5,12 +5,12 @@ from __future__ import annotations
 from textual import on
 from textual.app import ComposeResult
 from textual.binding import Binding
-from textual.containers import Center, Horizontal, Vertical
+from textual.containers import Horizontal
 from textual.screen import ModalScreen
-from textual.widgets import Button, Static, Label, Input
+from textual.widgets import Label, Input
 
 
-class Input_Dialog(ModalScreen[str]):
+class InputDialog(ModalScreen[str]):
     """A dialog for asking a user for a string."""
 
     CSS_PATH = "input_dialog.tcss"
@@ -21,10 +21,10 @@ class Input_Dialog(ModalScreen[str]):
     """Bindings for the input dialog."""
 
     def __init__(  # pylint:disable=too-many-arguments
-        self,
-        title: str,
-        question: str,
-        offset: tuple[int, int],
+            self,
+            title: str,
+            question: str,
+            offset: tuple[int, int],
     ) -> None:
         """Initialise the Input dialog.
 
@@ -53,7 +53,6 @@ class Input_Dialog(ModalScreen[str]):
         h.border_title = self._title
         h.styles.offset = self._offset
         self.query_one(Input).focus()
-
 
     @on(Input.Submitted)
     def send_response(self, event: Input.Submitted) -> None:

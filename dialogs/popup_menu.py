@@ -10,9 +10,9 @@ from logger import Logger
 class PopUpMenu(ModalScreen[str]):
     """A dialog for asking a user to select one of several options."""
 
-    wlog: Logger = Logger(namespace="PopUpMenu", debug=True)
+    wlog: Logger = Logger(namespace="PopUpMenu", debug=False)
 
-    CSS_PATH = ("popup_menu.tcss")
+    CSS_PATH = "popup_menu.tcss"
 
     BINDINGS = [
         Binding("left,up", "focus_previous", "", show=False),
@@ -55,7 +55,7 @@ class PopUpMenu(ModalScreen[str]):
         """Configure the dialog once the DOM is ready."""
         v = self.query_one("Vertical")
         v.border_title = self._title
-        v.styles.min_width = f"{max(len(self._title) + 6, 17)}"
+        v.styles.min_width = f"{max(len(self._title) + 10, 17)}"
         v.styles.offset = self._offset
         self.query(Button).first().focus()
         self.wlog.info("End on_mount")

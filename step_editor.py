@@ -12,7 +12,7 @@ from step import Step
 
 
 class StepEditor(Static):
-    wlog: Logger = Logger(namespace="StepEditor", debug=True)
+    wlog: Logger = Logger(namespace="StepEditor", debug=False)
     pname: str = ''
     step: Step | None = None
     changes_are_internal: bool = False
@@ -26,6 +26,11 @@ class StepEditor(Static):
             self.sname: str = str(sname)
             super().__init__()
 
+        def __str__(self) -> str:
+            return f"StepAction(cname={self.cname}, pname={self.pname}, sname={self.sname})"
+
+
+
     def compose(self) -> ComposeResult:
         self.border_title = 'Step Editor'
 
@@ -36,17 +41,17 @@ class StepEditor(Static):
 
             # Prompt Name
             # Label('Prompt Name:', id="prompt_name_lbl", classes="field_lbl"),
-            Label('Prompt Name>', id="step_prompt_name_btn", classes="field_lbl"),
+            Label('Prompt Name:', id="step_prompt_name_btn", classes="field_lbl"),
             InputCP("2", name="prompt_name", id="prompt_name_field", classes="field_input"),
 
             # Storage Path
             # Label('Storage Path:', id="storage_path_lbl", classes="field_lbl"),
-            Label('Storage Path>', id="step_storage_path_btn", classes="field_lbl"),
+            Label('Storage Path:', id="step_storage_path_btn", classes="field_lbl"),
             InputCP("3", name="storage_path", id="storage_path_field", classes="field_input"),
 
             # Text File
             # Label('Text File:', id="text_file_lbl", classes="field_lbl"),
-            Label('Text File>', id="step_text_file_btn", classes="field_lbl"),
+            Label('Text File:', id="step_text_file_btn", classes="field_lbl"),
             InputCP("4", name="text_file", id="text_file_field", classes="field_input"),
 
             # Model

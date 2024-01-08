@@ -17,7 +17,7 @@ async def succeed(d: dict):
 
 class AI:
     log = Logger(namespace='AI')
-    log_a = Logger(namespace="assistant")
+    log_a = Logger(namespace="Assistant")
     memory = DB('Memory')
     # client = OpenAI()
     # client.api_key = os.getenv('OPENAI_API_KEY')

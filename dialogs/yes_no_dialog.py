@@ -22,12 +22,13 @@ class YesNoDialog(ModalScreen[bool]):
     """Bindings for the yes/no dialog."""
 
     def __init__(  # pylint:disable=too-many-arguments
-        self,
-        title: str,
-        question: str,
-        yes_label: str = "Yes",
-        no_label: str = "No",
-        yes_first: bool = True,
+            self,
+            title: str,
+            question: str,
+            yes_label: str = "Yes",
+            no_label: str = "No",
+            yes_first: bool = True,
+            offset: tuple[int, int] = (0, 0),
     ) -> None:
         """Initialise the yes/no dialog.
 
@@ -52,6 +53,8 @@ class YesNoDialog(ModalScreen[bool]):
         """The label for the no button."""
         self._aye_first = yes_first
         """Should the positive button come first?"""
+        self._offset = offset
+        """Should the positive button come first?"""
 
     def compose(self) -> ComposeResult:
         """Compose the content of the dialog."""
@@ -71,9 +74,10 @@ class YesNoDialog(ModalScreen[bool]):
 
     def on_mount(self) -> None:
         """Configure the dialog once the DOM is ready."""
-        self.query_one("YesNoDialog > Vertical").border_title = self._title
+        v = self.query_one("YesNoDialog > Vertical")
+        v.border_title = self._title
+        v.styles.offset = self._offset
         self.query(Button).first().focus()
-
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
         """Handle a button being pressed on the dialog.

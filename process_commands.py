@@ -4,14 +4,25 @@ from typing import Any
 
 from rich.style import Style
 from textual.command import Provider, Hits, Hit
+from textual.message import Message
 from textual.screen import Screen
 
 from db import DB
-from file_editor import FileEditor
 from logger import Logger
 from processes import ProcessList
-from step_editor import StepEditor
 
+
+class ProcessCommand(Message):
+    """Process Command"""
+
+    def __init__(self, command: str, object_type: str, object_name: str) -> None:
+        self.command: str = str(command)
+        self.object_type: str = str(object_type)
+        self.object_name: str = str(object_name)
+        super().__init__()
+
+    def __str__(self) -> str:
+        return f"ProcessCommand(command={self.command}, object_type={self.object_type}, object_name={self.object_name})"
 
 
 class ProcessCommands(Provider):
@@ -29,10 +40,25 @@ class ProcessCommands(Provider):
     async def startup(self) -> None:
         """Called once when the command palette is opened, prior to searching"""
 
+        self.step_list = ["New Process First"]
+
+        for log in Logger.get_instances():
+            debug_value = "Off" if log.debug else "On"
+            self.step_list.append(f"Set Debug {log.namespace}/{debug_value}")
+
         for p, v in ProcessList.items():
-            self.step_list.extend([f"Select {p}", f"Execute {p}"])
-            self.step_list.extend([f"Select {p}/{s.name}" for s in v])
-            self.step_list.extend([f"Execute {p}/{s.name}" for s in v])
+            self.step_list.extend([f"Select Process {p}",
+                                   f"Execute Process {p}",
+                                   f"Delete Process {p}",
+                                   f"New Step {p}/First"
+                                   ])
+            for s in v:
+                step_name = f"{p}/{s.name}"
+                self.step_list.extend([f"Select Step {step_name}",
+                                       f"Execute Step {step_name}",
+                                       f"Delete Step {step_name}",
+                                       f"New Step {step_name}"
+                                       ])
 
         all_files = []
         for root, dirs, files in os.walk("./Memory"):
@@ -41,10 +67,12 @@ class ProcessCommands(Provider):
 
         for fn in all_files:
             sfn = fn[9:]
-            self.step_list.append(f"Edit {sfn}")
-            self.step_list.append(f"View {sfn}")
+            self.step_list.extend([f"Edit File {sfn}", f"View File {sfn}", f"Delete File {sfn}"])
 
-        self.wlog.info(f"StepList: ({len(self.step_list)}) {self.step_list}")
+        cr = "\n"
+        self.wlog.info(f"StepList: ({len(self.step_list)})")
+        for step in self.step_list:
+            self.wlog.info(f"  {step}")
 
     async def search(self, query: str) -> Hits:
         matcher = self.matcher(query)
@@ -55,22 +83,13 @@ class ProcessCommands(Provider):
         for path in self.step_list:
             score = matcher.match(path)
             if score > 0:
-                command, rest = path.split(' ', 1)
-                if command in ['Select', 'Execute']:
-                    if '/' in rest:
-                        pname, sname = rest.split('/')
-                    else:
-                        pname = rest
-                        sname = ''
-                    yield Hit(
-                        score,
-                        matcher.highlight(path),
-                        partial(app.on_step_action, StepEditor.StepAction(command, pname, sname)),
-                    )
-                elif command in ['Edit', 'View']:
-                    yield Hit(
-                        score,
-                        matcher.highlight(path),
-                        partial(app.on_file_action, FileEditor.FileAction(command, f"{rest}")),
-                    )
+                yield Hit(
+                    score,
+                    matcher.highlight(path),
+                    partial(self.parse_command, path),
+                )
 
+    def parse_command(self, cmd: str) -> [str]:
+        self.wlog.info(f"Parsing command: {cmd}")
+        (command, object_type, object_name) = cmd.split(' ', maxsplit=2)
+        self.app.post_message(ProcessCommand(command, object_type, object_name))

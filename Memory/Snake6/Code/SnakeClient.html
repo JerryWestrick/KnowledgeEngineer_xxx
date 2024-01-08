@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Snake Game</title>
+<style>
+  /* Styles will be added here */
+  #game-board {
+    display: grid;
+    grid-template-columns: repeat(100, 1fr);
+    grid-template-rows: repeat(100, 1fr);
+    border: 1px solid black;
+  }
+  .cell {
+    width: 1vw;
+    height: 1vw;
+  }
+  #client-list {
+    margin-top: 10px;
+  }
+</style>
+<script>
+  // Constants
+  const BOARD_SIZE = 100;
+  const SNAKE_CHARACTERS = ["\uD83D\uDD34", "\uD83D\uDD35", "\uD83D\uDFE0", "\uD83D\uDFE1", "\uD83D\uDFE2", "\uD83D\uDFE3", "\uD83D\uDFE4"];
+  const FOOD_CHAR = "\uD83C\uDF4E";
+  const DIRECTION = {"Stop": (0, 0), "Up": (0,-1), "Down": (0,1), "Left": (-1,0), "Right": (1,0)};
+
+  // Global variables
+  let websocket = null;
+  let username = '';
+
+  // Functions
+  function initializeClient() {
+    connectWebSocket();
+    promptUsername();
+  }
+
+  function connectWebSocket() {
+    websocket = new WebSocket('ws://localhost:6789');
+    websocket.onopen = function() {
+      sendJoiningMessage();
+    };
+    websocket.onmessage = function(event) {
+      const message = JSON.parse(event.data);
+      switch (message.type) {
+        case 'GameStatus':
+          updateGameStatus(message);
+          break;
+        case 'SnakeDied':
+          handleSnakeDeath(message);
+          break;
+      }
+    };
+    websocket.onerror = function() {
+      console.error('WebSocket error');
+    };
+    websocket.onclose = function() {
+      attemptReconnect();
+    };
+  }
+
+  function promptUsername() {
+    username = window.prompt('Enter your username:');
+    if (!username) {
+      promptUsername();
+    }
+  }
+
+  function sendJoiningMessage() {
+    const message = { type: 'Joining', username: username };
+    websocket.send(JSON.stringify(message));
+  }
+
+  function handleDirectionChange(event) {
+    const keyToDirection = {
+      'ArrowUp': 'Up',
+      'ArrowDown': 'Down',
+      'ArrowLeft': 'Left',
+      'ArrowRight': 'Right'
+    };
+    const direction = keyToDirection[event.key];
+    if (direction) {
+      const message = { type: 'DirectionChange', direction: direction };
+      websocket.send(JSON.stringify(message));
+    }
+  }
+
+  function displayGameBoard(gameBoard) {
+    const boardElement = document.getElementById('game-board');
+    boardElement.innerHTML = '';
+    for (let i = 0; i < BOARD_SIZE; i++) {
+      for (let j = 0; j < BOARD_SIZE; j++) {
+        const cell = document.createElement('div');
+        cell.className = 'cell';
+        cell.textContent = gameBoard[i * BOARD_SIZE + j];
+        boardElement.appendChild(cell);
+      }
+    }
+  }
+
+  function displayClientList(clients) {
+    const clientListElement = document.getElementById('client-list');
+    clientListElement.innerHTML = '';
+    for (const [username, client] of Object.entries(clients)) {
+      const clientInfo = document.createElement('span');
+      clientInfo.textContent = `${client.char}${username}:${client.score} `;
+      clientListElement.appendChild(clientInfo);
+    }
+  }
+
+  function updateGameStatus(message) {
+    displayGameBoard(message.game_board);
+    displayClientList(message.clients);
+  }
+
+  function handleSnakeDeath(message) {
+    if (message.username === username) {
+      window.alert('Your snake has died!');
+    }
+  }
+
+  function attemptReconnect() {
+    // Reconnect attempt logic will be added here
+  }
+
+  // Event listeners
+  document.addEventListener('DOMContentLoaded', initializeClient);
+  document.addEventListener('keydown', handleDirectionChange);
+
+  // WebSocket event listeners
+  // These will be added within the connectWebSocket function
+
+</script>
+</head>
+<body>
+  <div id="game-board"></div>
+  <div id="client-list"></div>
+</body>
+</html>

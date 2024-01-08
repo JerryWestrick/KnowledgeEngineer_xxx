@@ -29,13 +29,23 @@ class FSEHandler(FileSystemEventHandler):
         self.app.workers.add_worker(t, start=False, exclusive=True)
 
     def on_any_event(self, event):
+
+        self.app.post_message(
+            Info("on_any_event",
+                 f"event_Type={event.event_type}, "
+                 f"is_dir={event.is_directory}, "
+                 f"src_path={event.src_path}, "
+                 f"dst_path={getattr(event, 'dest_path', '')}"
+                 )
+        )
+
         match event.event_type:
             case 'opened' | 'closed':
                 pass
 
             case 'moved' | 'created' | 'modified' | 'deleted':
                 self.app.post_message(
-                    FileSystemChangeMessage(
+                    self.FileSystemChangeMessage(
                         event.event_type,
                         event.is_directory,
                         event.src_path,
@@ -44,11 +54,4 @@ class FSEHandler(FileSystemEventHandler):
                 )
 
             case _:
-                self.app.post_message(
-                    Info("on_any_event",
-                         f"[cyan]event_Type={event.event_type}, "
-                         f"is_dir={event.is_directory}, "
-                         f"src_path={event.src_path}, "
-                         f"dst_path={getattr(event, 'dest_path', '')}[/]"
-                         )
-                )
+                pass

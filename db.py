@@ -16,10 +16,10 @@ from logger import Logger
 
 class DB:
     """A simple key-value store, where keys are filenames and values are file contents."""
-    log = Logger(namespace='DB', debug=False)
+    log = Logger(namespace='DB', debug=True)
     # a class variable holding a dictionary of all macro_name -> values
     # this is used to replace macro names in the contents of the files
-    # macro syntax is '${macro_name}$ i.e. ${version}$ will be replace with the version number defined below'
+    # macro syntax is '${macro_name}$ i.e. ${version}$ will be replaced with the version number defined below'
     # macro is set to a shallow copy of the variables of each step before step execution.
     macro: dict[str, str] = {'version': '1.0'}
 
@@ -166,7 +166,7 @@ class DB:
             for item in directory_path.iterdir():
                 if item.is_file():
                     if len(item.suffixes) > 1:
-                        if re.match(r"^\.~\d\d$", item.suffix):
+                        if re.search(r"\.~\d\d~\.", item.name):
                             # print(f"Deleting file {item}")
                             item.unlink()  # Delete the file
                 elif item.is_dir():

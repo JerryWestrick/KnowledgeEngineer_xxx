@@ -1,10 +1,13 @@
 import json
+import weakref
 
 from pydantic_core import from_json
 from textual.widgets import RichLog
 
 
 class Logger:
+    _instances = weakref.WeakSet()
+
     logger_widget: RichLog | None = None
 
     top_left = '╭──'
@@ -54,6 +57,7 @@ class Logger:
     def __init__(self, namespace: str, debug: bool = True):
         self.namespace = namespace
         self.debug = debug
+        self._instances.add(self)
 
     def error(self, msg: str):
         self.logger_widget.write(f"[on red]{self.namespace:>10}[/on red]::{msg}", )
@@ -64,3 +68,14 @@ class Logger:
     def info(self, msg: str):
         if self.debug:
             self.logger_widget.write(f"{self.namespace:>10}::{msg}")
+
+    @classmethod
+    def get_instances(cls):
+        return list(cls._instances)
+
+    @classmethod
+    def set_namespace(cls, namespace: str, value: str) -> None:
+        for instance in cls.get_instances():
+            if instance.namespace == namespace:
+                instance.debug = (value == 'On')
+                return

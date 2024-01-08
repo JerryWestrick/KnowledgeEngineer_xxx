@@ -1,182 +1,146 @@
-# Client Implementation Plan
-
-## Requirements Mapping
-
-1. Single HTML File
-
-- Function: `createHTMLFile()`
-
-   This function will create the SnakeClient.html file containing the HTML, CSS, and JavaScript code for the client.
-
-   ```python
-   def createHTMLFile():
-       # Implementation details
-   ```
-
-2. WebSockets Communication
-
-- Function: `connectToServer()`
-
-   This function will establish a WebSocket connection with the server and handle the communication between the client and server.
-
-   ```python
-   def connectToServer():
-       # Implementation details
-   ```
-
-3. User Interface
-
-- Function: `promptForUsername()`
-
-   This function will prompt the user to enter a username for the game.
-
-   ```python
-   def promptForUsername():
-       # Implementation details
-   ```
-
-- Function: `displayGameBoard()`
-
-   This function will display the game board on the client's screen.
-
-   ```python
-   def displayGameBoard():
-       # Implementation details
-   ```
-
-- Function: `displayStatusBar()`
-
-   This function will display the status bar at the bottom of the window, showing the client list.
-
-   ```python
-   def displayStatusBar():
-       # Implementation details
-   ```
-
-4. Game Board Display
-
-- Function: `resizeBoard()`
-
-   This function will resize the game board based on the window size.
-
-   ```python
-   def resizeBoard():
-       # Implementation details
-   ```
-
-- Function: `scaleCharacters()`
-
-   This function will scale the characters displayed on the game board based on the board size.
-
-   ```python
-   def scaleCharacters():
-       # Implementation details
-   ```
-
-5. Client List Display
-
-- Function: `updateClientList()`
-
-   This function will update the client list displayed in the status bar.
-
-   ```python
-   def updateClientList():
-       # Implementation details
-   ```
-
-6. User Interaction
-
-- Function: `detectArrowKeyPress()`
-
-   This function will detect arrow key presses and send the corresponding direction change message to the server.
-
-   ```python
-   def detectArrowKeyPress():
-       # Implementation details
-   ```
-
-7. Handling Server Messages
-
-- Function: `handleSnakeDiedMessage()`
-
-   This function will handle the SnakeDied message received from the server.
-
-   ```python
-   def handleSnakeDiedMessage():
-       # Implementation details
-   ```
-
-- Function: `handleGameStatusMessage()`
-
-   This function will handle the GameStatus message received from the server and update the game board and client list.
-
-   ```python
-   def handleGameStatusMessage():
-       # Implementation details
-   ```
-
-8. Error Handling
-
-- Function: `handleNetworkError()`
-
-   This function will handle network errors and disconnections gracefully.
-
-   ```python
-   def handleNetworkError():
-       # Implementation details
-   ```
-
-9. Visual and Aesthetic Elements
-
-- Function: `designGameBoard()`
-
-   This function will design the visual elements of the game board to make it visually appealing.
-
-   ```python
-   def designGameBoard():
-       # Implementation details
-   ```
-
-10. Responsiveness
-
-- Function: `handleScreenResize()`
-
-    This function will handle screen resize events and adjust the game board and status bar accordingly.
-
-    ```python
-    def handleScreenResize():
-        # Implementation details
-    ```
-
-11. Client Initialization
-
-- Function: `initializeClient()`
-
-    This function will initialize the client by connecting to the server, prompting for a username, and handling the joining process.
-
-    ```python
-    def initializeClient():
-        # Implementation details
-    ```
-
-12. Client-Side Logic
-
-- Function: `updateGameState()`
-
-    This function will update the game state on the client-side based on the received GameStatus message from the server.
-
-    ```python
-    def updateGameState():
-        # Implementation details
-    ```
-
-13. Accessibility
-
-- Function: `implementAccessibility()`
-
-    This function will implement accessibility features to make the client accessible for users with disabilities.
-
-    ```python
-    def implementAccessibility():
-        # Implementation details
-    ```
+# Client Implementation Plan for Snake Online Game
+
+This document outlines the implementation plan for the client-side of the Snake Online Game, mapping each requirement to specific functions and detailing the interface and logic of each function.
+
+## 1. Single HTML File (`SnakeClient.html`)
+- **Function**: `initializeClient`
+- **Interface**: None (HTML file initialization)
+- **Logic**: 
+  - Load the HTML content with embedded CSS and JavaScript.
+  - Call `connectWebSocket` to establish a connection.
+  - Call `promptUsername` to get the user's username.
+
+## 2. Websocket Connection
+- **Function**: `connectWebSocket`
+- **Interface**: None (WebSocket API)
+- **Logic**: 
+  - Create a new WebSocket connection to the server.
+  - Set up event listeners for `onopen`, `onmessage`, `onerror`, and `onclose`.
+
+## 3. Username Prompt
+- **Function**: `promptUsername`
+- **Interface**: `window.prompt`
+- **Logic**: 
+  - Prompt the user for a username.
+  - Validate the input and retry if necessary.
+  - Store the username for future use.
+
+## 4. Joining Message
+- **Function**: `sendJoiningMessage`
+- **Interface**: `WebSocket.send`
+- **Logic**: 
+  - Construct a "Joining" message with the username.
+  - Send the message through the WebSocket connection.
+
+## 5. Direction Change Handling
+- **Function**: `handleDirectionChange`
+- **Interface**: `document.addEventListener('keydown')`
+- **Logic**: 
+  - Listen for arrow key presses.
+  - Map the key presses to directions.
+  - Send a "DirectionChange" message with the new direction.
+
+## 6. Game Board Display
+- **Function**: `displayGameBoard`
+- **Interface**: HTML `<div>` elements
+- **Logic**: 
+  - Create a 100x100 grid of div elements.
+  - Apply styles for the frame and resizing behavior.
+  - Update the grid based on the "GameStatus" message.
+
+## 7. Client List Display
+- **Function**: `displayClientList`
+- **Interface**: HTML `<div>` element
+- **Logic**: 
+  - Create a status bar element.
+  - Update the status bar with client information from the "GameStatus" message.
+
+## 8. Game Status Updates
+- **Function**: `updateGameStatus`
+- **Interface**: `WebSocket.onmessage`
+- **Logic**: 
+  - Parse the "GameStatus" message.
+  - Call `displayGameBoard` and `displayClientList` with the new data.
+
+## 9. Snake Death Handling
+- **Function**: `handleSnakeDeath`
+- **Interface**: `window.alert`
+- **Logic**: 
+  - Display a pop-up dialog informing the user of their snake's death.
+
+## 10. Resilient Connection
+- **Function**: `attemptReconnect`
+- **Interface**: `setTimeout`
+- **Logic**: 
+  - On disconnection, attempt to reconnect after a delay.
+  - Increase the delay between attempts up to a maximum value.
+
+## 11. Security
+- **Function**: `secureConnection`
+- **Interface**: None (Best practices)
+- **Logic**: 
+  - Use `wss://` for secure WebSocket connections.
+  - Implement input validation and sanitization.
+
+## 12. User Interface Responsiveness
+- **Function**: `makeResponsive`
+- **Interface**: CSS media queries, JavaScript
+- **Logic**: 
+  - Use media queries for different screen sizes.
+  - Adjust game board and elements dynamically with JavaScript.
+
+## 13. Error Handling
+- **Function**: `handleErrors`
+- **Interface**: `window.onerror`
+- **Logic**: 
+  - Catch and log errors.
+  - Provide user feedback for recoverable errors.
+
+## 14. Visual Aesthetics
+- **Function**: `applyStyles`
+- **Interface**: CSS
+- **Logic**: 
+  - Define a color scheme and layout in CSS.
+  - Apply styles to HTML elements for a cohesive look.
+
+## 15. Performance Optimization
+- **Function**: `optimizePerformance`
+- **Interface**: JavaScript performance best practices
+- **Logic**: 
+  - Minimize DOM manipulations.
+  - Use efficient data structures and algorithms.
+
+## 16. Accessibility
+- **Function**: `enhanceAccessibility`
+- **Interface**: ARIA attributes, keyboard event listeners
+- **Logic**: 
+  - Add ARIA attributes for screen readers.
+  - Ensure keyboard navigation is possible and intuitive.
+
+## 17. Sound Effects
+- **Function**: `playSoundEffects`
+- **Interface**: HTML `<audio>` element
+- **Logic**: 
+  - Trigger sound effects for game events.
+  - Provide a way to mute/unmute sounds.
+
+## 18. Game Instructions
+- **Function**: `showInstructions`
+- **Interface**: HTML `<div>` element
+- **Logic**: 
+  - Display a modal or section with game instructions.
+  - Include controls and objectives.
+
+## 19. Client-Side Validation
+- **Function**: `validateInput`
+- **Interface**: JavaScript
+- **Logic**: 
+  - Check user input before sending messages.
+  - Prevent invalid or malicious data from being sent.
+
+## 20. Customization Options
+- **Function**: `offerCustomization`
+- **Interface**: HTML `<select>` element, CSS
+- **Logic**: 
+  - Provide options for snake characters and themes.
+  - Apply the selected options to the game board and snake representation.

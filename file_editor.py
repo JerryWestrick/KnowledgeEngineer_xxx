@@ -31,6 +31,9 @@ class FileEditor(Static):
             self.cmd = cmd
             self.name = name
 
+        def __str__(self) -> str:
+            return f"FileAction(cmd={self.cmd}, name={self.name})"
+
     # pel = get_language("promptengineer")
 
     def compose(self) -> ComposeResult:
@@ -73,39 +76,42 @@ class FileEditor(Static):
         self.border_title = f"Editing {self.pathname}"
 
     async def file_action(self, f: FileAction) -> None:
+        self.pathname = f.name
         ext = os.path.splitext(f.name)[1]
 
-        self.pathname = f.name
+        match f.cmd:
+            case FileActionCmd.EDIT:
+                if ext == '.md':
+                    self.edit_btn.add_class("hidden")
+                    self.view_btn.remove_class("hidden")
+                else:
+                    self.edit_btn.add_class("hidden")
+                    self.view_btn.add_class("hidden")
 
-        if ext == '.md' and f.cmd == 'View':
-            self.view_mode()
-            self.view_btn.add_class("hidden")
-            self.edit_btn.remove_class("hidden")
-            # file_contents = self.db.get(f.name)
-            full_path = f"{os.getcwd()}/Memory/{self.pathname}"
-            await self.md_viewer.go(full_path)
-            return
+                self.edit_mode()
+                self.border_title = f"Editing {f.name}"
+                ext = os.path.splitext(self.pathname)[1]
+                if ext in self.known_extensions:
+                    self.txt_editor.language = self.known_extensions[ext]
+                else:
+                    self.txt_editor.language = None
+                try:
+                    self.txt_editor.load_text(self.db.read(self.pathname))
+                except KeyError as ke:
+                    self.wlog.error(f"File not found {self.pathname}")
+                return
 
-        if ext == '.md':
-            self.edit_btn.add_class("hidden")
-            self.view_btn.remove_class("hidden")
-        else:
-            self.edit_btn.add_class("hidden")
-            self.view_btn.add_class("hidden")
+            case FileActionCmd.VIEW:
+                if ext == '.md':
+                    self.view_mode()
+                    self.view_btn.add_class("hidden")
+                    self.edit_btn.remove_class("hidden")
+                    full_path = f"{os.getcwd()}/Memory/{self.pathname}"
+                    await self.md_viewer.go(full_path)
+                    return
 
-        self.edit_mode()
-        self.border_title = f"Editing {f.name}"
-        # self.wlog.info(f"Known Languages: {self.txt_editor.available_languages}")
-        ext = os.path.splitext(self.pathname)[1]
-        if ext in self.known_extensions:
-            self.txt_editor.language = self.known_extensions[ext]
-        else:
-            self.txt_editor.language = None
-        try:
-            self.txt_editor.load_text(self.db.read(self.pathname))
-        except KeyError as ke:
-            self.wlog.error(f"File not found {self.pathname}")
-        return
+                f.cmd = FileActionCmd.EDIT
+                await self.file_action(f)
 
     @on(Button.Pressed, selector="#toc_btn")
     def toggle_table_of_contents(self):
@@ -133,5 +139,3 @@ class FileEditor(Static):
     def modified(self):
         self.save_btn.remove_class("hidden")
         self.wlog.info(f"TextArea(text_edit) value changed...")
-
-
