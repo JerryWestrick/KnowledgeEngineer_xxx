@@ -15,7 +15,7 @@ from step_editor import StepEditor
 
 
 class KEApp(App):
-    wlog = Logger(namespace="KEApp", debug=True)
+    wlog = Logger(namespace="KEApp", debug=False)
     BINDINGS = [
         ('d', 'toggle_dark', "Toggle dark mode"),
         ('q', 'quit', "Quit Application"),
@@ -111,9 +111,12 @@ class KEApp(App):
                 self.process_editor.execute_process(cmd.object_name)
 
             case "Step":
-                pass
+                pname, sname = cmd.object_name.split('/')
+                self.post_message(StepEditor.StepAction("Execute", pname, sname))
+
             case "File":
                 pass
+
             case "Debug":
                 namespace, value = cmd.object_name.split('/')
                 Logger.set_namespace(namespace, value)
@@ -149,10 +152,16 @@ class KEApp(App):
         if self.args.gui:
             self.set_gui_mode()
 
-        if self.args.exec:
+        if self.args.step:
             self.set_log_mode()
             self.on_process_command(
-                ProcessCommand(command='Execute', object_type='Process', object_name=self.args.exec))
+                ProcessCommand(command='Execute', object_type='Step', object_name=f"{self.args.proc}/{self.args.step}")
+            )
+        elif self.args.proc:
+            self.set_log_mode()
+            self.on_process_command(
+                ProcessCommand(command='Execute', object_type='Process', object_name=self.args.proc)
+            )
 
 
 if __name__ == "__main__":
@@ -161,13 +170,14 @@ if __name__ == "__main__":
     # Add the arguments
     parser.add_argument("-gui", action="store_true", help="activate GUI")
     parser.add_argument("-log", action="store_true", help="activate Log Mode")
-    parser.add_argument("-exec", metavar="proc-name", type=str, help="execute the given process name")
+    parser.add_argument("-proc", metavar="proc-name", type=str, help="execute the given process name")
+    parser.add_argument("-step", metavar="step-name", type=str, help="execute the given step in the proc")
 
     # Parse the arguments
     args: argparse.Namespace = parser.parse_args()
 
     # Now you can access the arguments as follows
-    if not args.gui and not args.log and not args.exec:
+    if not args.gui and not args.log and not args.proc:
         print("No Option chosen.")
         parser.print_help()
         exit(1)

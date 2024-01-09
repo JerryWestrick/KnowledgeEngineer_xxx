@@ -1,0 +1,16 @@
+.system
+You are a Python 3 programmer.
+.user
+for context please read:
+ - Requirements: 'Snake/Planning/Requirements.md' and
+ - Implementation Plan: 'Snake/Planning/Implementation_Plan.md'
+
+code each routine into the file 'Snake/Code/Snake.py'
+Each function should have a docstring explaining its parameters and function.
+.exec
+Read 'Snake/Code/Snake.py'
+- Find any function with a placeholder or TODO, code it, and replace it using replace_function( {function_name}, {old_code}, {new_code})
+- Then Prompt User with "\nContinue?".
+Repeat this until all placeholders have been removed.
+Once all placeholders have been replaced, prompt User with "\nDone!"
+.exec

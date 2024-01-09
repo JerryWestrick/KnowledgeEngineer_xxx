@@ -18,7 +18,7 @@ from dialogs.inputdialog import InputDialog
 
 
 class ProcessEditor(Static):
-    wlog = Logger(namespace="ProcessEditor", debug=True)
+    wlog = Logger(namespace="ProcessEditor", debug=False)
     plog = Logger(namespace="Process", debug=True)
     selected_node: TreeNode | None = None
     selected_process: str = ''

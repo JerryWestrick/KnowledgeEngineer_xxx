@@ -1,0 +1,7 @@
+.include Snake/Requirements/Actor.pe
+.user
+Describe the "Snake" game. List the games rules. And list the user interface/interactions
+Write the game description to 'Snake/Planning/Requirements.md'
+.exec
+Read 'Snake/Planning/Requirements.md' if anything was left out, write an new version of the file 'Snake/Planning/Requirements.md'
+

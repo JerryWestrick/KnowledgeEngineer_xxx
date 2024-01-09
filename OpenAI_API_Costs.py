@@ -11,6 +11,9 @@ OpenAI_API_Costs = {
     'gpt-3.5-turbo':
         {'model': 'gpt-3.5-turbo', 'title': 'gpt-3.5-turbo (4K)',
          'RPM': 3500, 'TPM': 90000, 'input': 0.0015, 'output': 0.0020},
+    'gpt-3.5-turbo-1106':
+        {'model': 'gpt-3.5-turbo-1106', 'title': 'gpt-3.5-turbo (4K)',
+         'RPM': 3500, 'TPM': 90000, 'input': 0.0015, 'output': 0.0020},
     # 'text-davinci-003':
     #     {'model': 'text-davinci-003', 'title': 'davinci (most powerful)',
     #      'RPM': 3000, 'TPM': 250000, 'input': 0.0200, 'output': 0.0200},

@@ -23,7 +23,7 @@ class FileActionCmd(Enum):
 
 class FileEditor(Static):
     db: DB = DB("Memory")
-    wlog: Logger = Logger(namespace="FileEditor", debug=False)
+    wlog: Logger = Logger(namespace="FileEditor", debug=True)
 
     class FileAction(Message):
         def __init__(self, cmd: FileActionCmd, name: str):
@@ -76,6 +76,7 @@ class FileEditor(Static):
         self.border_title = f"Editing {self.pathname}"
 
     async def file_action(self, f: FileAction) -> None:
+        self.wlog.info(f"file_action({f})")
         self.pathname = f.name
         ext = os.path.splitext(f.name)[1]
 
@@ -123,11 +124,11 @@ class FileEditor(Static):
 
     @on(Button.Pressed, selector="#edit_btn")
     def switch_to_edit_mode(self):
-        self.post_message(self.FileAction("Edit", self.pathname))
+        self.post_message(self.FileAction(FileActionCmd.EDIT, self.pathname))
 
     @on(Button.Pressed, selector="#view_btn")
     def switch_to_view_mode(self):
-        self.post_message(self.FileAction("View", self.pathname))
+        self.post_message(self.FileAction(FileActionCmd.VIEW, self.pathname))
 
     @on(Button.Pressed, selector="#save_btn")
     def save_file(self):
