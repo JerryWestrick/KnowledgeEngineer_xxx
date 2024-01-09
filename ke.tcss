@@ -113,9 +113,13 @@ Grid {
     grid-size: 2;
     grid-columns: 15 100%;
     border: none;
-    height: auto;
+    height: 2fr;
+
 }
 
+#logger {
+    height: 4fr;
+}
 
 .main_grid {
     layout: grid;

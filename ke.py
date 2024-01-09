@@ -1,25 +1,28 @@
+import argparse
+
 from textual import on
 from textual.app import App, ComposeResult
 from textual.containers import Grid
 from textual.events import Key
 from textual.widgets import Header, Footer, RichLog
 
-from memory_tree import MemoryTree,  DirTree
+from memory_tree import MemoryTree, DirTree
 from file_editor import FileEditor
-from file_system_event_handler import FSEHandler
 from logger import Logger
-# from messages import Info
 from process_commands import ProcessCommands, ProcessCommand
 from process_editor import ProcessEditor
 from step_editor import StepEditor
 
 
 class KEApp(App):
-    wlog = Logger(namespace="KEApp", debug=False)
+    wlog = Logger(namespace="KEApp", debug=True)
     BINDINGS = [
         ('d', 'toggle_dark', "Toggle dark mode"),
         ('q', 'quit', "Quit Application"),
+        ('l', 'toggle_log', "Toggle log / gui mode")
     ]
+    TITLE = "Knowledge Engineer"
+    SUB_TITLE = "AI Prompt Memory Engineering Tool"
 
     CSS_PATH = "ke.tcss"
 
@@ -27,6 +30,20 @@ class KEApp(App):
     clipboard: dict[str, str] = {}
 
     # pe_language = get_language("PromptEngineer")
+
+    def __init__(self,
+                 driver_class=None,
+                 css_path=None,
+                 watch_css=False,
+                 arguments: argparse.Namespace = None
+                 ):
+        super().__init__(
+            driver_class=driver_class,
+            css_path=css_path,
+            watch_css=watch_css,
+        )
+        self.args = arguments
+        self.log_mode = False
 
     def compose(self) -> ComposeResult:
         """What Widgets is this app composed of?"""
@@ -47,62 +64,41 @@ class KEApp(App):
             self.step_editor,
             self.mt,
             self.file_editor,
-            self.rt_log,
             id="main_grid", classes="main_grid"
         )
         yield self.grid
+        yield self.rt_log
 
+        self.log_mode = False
         self.wlog.info(f"Processes Loaded")
 
-    @on(FSEHandler.FileSystemChangeMessage)
-    def fs_change(self, fs: FSEHandler.FileSystemChangeMessage):
-        match fs.event_type:
-            case 'created':
-                pass
+    def set_log_mode(self) -> None:
+        self.log_mode = True
+        self.grid.styles.display = 'none'
+        self.wlog.info(f"Switched to Log Mode")
 
-            case 'deleted':
-                pass
-
-            case 'moved':
-                pass
-
-            case 'modified':
-                if fs.is_directory:
-                    dirtree: DirTree = self.query_one("#directory_tree")
-                    dirtree.reload_path(fs.src_path)
-
-        self.wlog.info(f"{'fs_change':>15}:event_type={fs.event_type}, "
-                       f"is_directory={fs.is_directory}, "
-                       f"src_path={fs.src_path}, "
-                       f"dst_path={fs.dst_path}"
-                       )
-
-    # @on(Info)
-    # def log_info(self, msg: Info):
-    #     self.wlog.info(f"{msg.func:>15}:{msg.msg}")
-    #     return
-
-    async def on_mount(self) -> None:
-        self.event_handler = FSEHandler(self)  # Pass the watchdog_screen instance
+    def set_gui_mode(self):
+        self.log_mode = False
+        self.grid.styles.display = 'block'
+        self.wlog.info(f"Switched to Gui Mode")
 
     @on(Key)
     def check_key_event(self, event: Key):
         match event.key:
             case 'ctrl+up':
-                rows = [s.value for s in self.grid.styles.grid_rows]
-                rows[2] += 1
-                rows_str = f"{rows[0]} {rows[1]}fr {rows[2]}fr"
-                # self.wlog.info(f"grid_rows({rows_str})")
-                self.grid.styles.grid_rows = rows_str
+                height = int(str(self.rt_log.styles.height)[:-2])
+                self.rt_log.styles.height = f"{height + 1}fr"
 
             case 'ctrl+down':
-                rows = [s.value for s in self.grid.styles.grid_rows]
-                if rows[2] == 1:
-                    return
+                height = int(str(self.rt_log.styles.height)[:-2])
+                if height > 2:
+                    self.rt_log.styles.height = f"{height - 1}fr"
 
-                rows[2] -= 1
-                rows_str = f"{rows[0]} {rows[1]}fr {rows[2]}fr"
-                self.grid.styles.grid_rows = rows_str
+            case 'ctrl+l':
+                self.set_log_mode()
+
+            case 'ctrl+g':
+                self.set_gui_mode()
 
             case _:
                 self.wlog.info(f"{event}")
@@ -112,8 +108,8 @@ class KEApp(App):
         self.wlog.info(f"on_process_command({cmd})")
         match cmd.object_type:
             case "Process":
+                self.process_editor.execute_process(cmd.object_name)
 
-                pass
             case "Step":
                 pass
             case "File":
@@ -146,7 +142,35 @@ class KEApp(App):
     #     self.wlog.info(f"on_process_action({p})")
     #     await self.process_editor.process_action(p)
 
+    async def on_mount(self) -> None:
+        if self.args.log:
+            self.set_log_mode()
+
+        if self.args.gui:
+            self.set_gui_mode()
+
+        if self.args.exec:
+            self.set_log_mode()
+            self.on_process_command(
+                ProcessCommand(command='Execute', object_type='Process', object_name=self.args.exec))
+
 
 if __name__ == "__main__":
-    ke_app = KEApp()
+    # Create the parser
+    parser = argparse.ArgumentParser(description="Knowledge Engineering: AI Prompt Memory Engineering Tool")
+    # Add the arguments
+    parser.add_argument("-gui", action="store_true", help="activate GUI")
+    parser.add_argument("-log", action="store_true", help="activate Log Mode")
+    parser.add_argument("-exec", metavar="proc-name", type=str, help="execute the given process name")
+
+    # Parse the arguments
+    args: argparse.Namespace = parser.parse_args()
+
+    # Now you can access the arguments as follows
+    if not args.gui and not args.log and not args.exec:
+        print("No Option chosen.")
+        parser.print_help()
+        exit(1)
+
+    ke_app = KEApp(arguments=args)
     ke_app.run()

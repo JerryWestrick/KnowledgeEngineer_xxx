@@ -3,6 +3,7 @@ import os
 import shutil
 from enum import Enum
 from functools import partial
+from typing import Any
 
 from textual import on, work
 from textual.app import ComposeResult
@@ -10,8 +11,9 @@ from textual.binding import BindingType, Binding
 from textual.events import MouseDown, Key
 from textual.message import Message
 from textual.widgets import DirectoryTree, Static
-from textual.widgets._tree import TreeNode
+from textual.widgets._tree import TreeNode, Tree
 from textual.worker import Worker
+from watchdog.events import FileSystemEventHandler
 
 from db import DB
 from dialogs.inputdialog import InputDialog
@@ -32,7 +34,7 @@ class DirectoryActionCmd(Enum):
 
 
 class DirTree(DirectoryTree):
-    wlog: Logger = Logger(namespace="DirTree", debug=True)
+    wlog: Logger = Logger(namespace="DirTree", debug=False)
     selected_file: str | None = None
     selected_directory: str | None = None
     db: DB = DB("Memory")
@@ -336,32 +338,81 @@ class MemoryTree(Static):
     async def on_mount(self) -> None:
         self.dirtree.root.expand_all()  # Load all the items so that we can access Them when needed
         self.observer = Observer()
-        self.event_handler = FSEHandler(self)  # Pass the watchdog_screen instance
-        self.observer.schedule(self.event_handler, self.watchDirectory, recursive=True)
-        t = Worker(self, self.observer.start(), name="WatchDog", description="Separate Thread running WatchDog",
-                   thread=True)
-        self.workers.add_worker(t, start=False, exclusive=True)
+        self.event_handler = FSEHandler(self, self.watchDirectory)  # Pass the watchdog_screen instance
+        # self.observer.schedule(self.event_handler, self.watchDirectory, recursive=True)
+        # t = Worker(self, self.observer.start(), name="WatchDog", description="Separate Thread running WatchDog",
+        #            thread=True)
+        # self.workers.add_worker(t, start=False, exclusive=True)
+
+    def find_child_node(self, parent: TreeNode, child_names: [str]) -> TreeNode[Any] | None:
+        self.wlog.info(f"Looking for {child_names}")
+        for child in parent.children:
+            self.wlog.info(f"Looking at {child.label}")
+            if str(child.label) == child_names[0]:
+                child_names.pop(0)
+                if not child_names:
+                    return child
+                else:
+                    return self.find_child_node(child, child_names)
+        return None
 
     @on(FSEHandler.FileSystemChangeMessage)
-    def fs_change(self, fs: FSEHandler.FileSystemChangeMessage):
+    async def fs_change(self, fs: FSEHandler.FileSystemChangeMessage):
+        self.wlog.info(f"{'fs_change':>15}:[cyan]event_type=[/]{fs.event_type}, "
+                       f"[cyan]is_directory=[/]{fs.is_directory}, "
+                       f"[cyan]src_path=[/]{fs.src_path}, "
+                       f"[cyan]dst_path=[/]{fs.dst_path}"
+                       )
+
         match fs.event_type:
-            case 'created' | 'deleted' | 'moved':
+            case 'modified':
                 pass
 
-            case 'modified':
-                if fs.is_directory:
-                    anode = self.dirtree.root
-                    for child_label in fs.src_path.split('/')[1:]:
-                        for child in anode.children:
-                            if child.label == child_label:
-                                anode = child
-                    self.dirtree.reload_node(anode)
+            case 'moved':
+                src_names = fs.src_path.split('/')[2:]
+                src_name = src_names.pop(-1)
 
-        self.wlog.info(f"{'fs_change':>15}:[cyan]event_type={fs.event_type}, "
-                       f"is_directory={fs.is_directory}, "
-                       f"src_path={fs.src_path}, "
-                       f"dst_path={fs.dst_path}[/]"
-                       )
+                dst_names = fs.dst_path.split('/')[2:]
+                dst_name = dst_names.pop(-1)
+
+                if src_names == dst_names:
+                    self.wlog.info(f"rename of file {src_name} to {dst_name} in directory {src_names}")
+                    child_node = self.find_child_node(self.dirtree.root, fs.src_path.split('/')[2:])
+                    if child_node:
+                        child_node.label = dst_name
+                    # child_node = self.find_child_node(self.dirtree.root, fs.src_path.split('/')[2:])
+                else:
+                    self.wlog.info(f"move file from {fs.src_path} to {fs.dst_path}")
+                    await self.fs_change(FSEHandler.FileSystemChangeMessage('deleted',
+                                                                            fs.is_directory,
+                                                                            fs.src_path,
+                                                                            ''))
+                    await self.fs_change(FSEHandler.FileSystemChangeMessage('created',
+                                                                            fs.is_directory,
+                                                                            fs.dst_path,
+                                                                            ''))
+
+            case 'created':
+                names = fs.src_path.split('/')[2:]
+                file_name = names.pop(-1)
+                child_node = self.find_child_node(self.dirtree.root, names)
+                if child_node:
+                    if fs.is_directory:
+                        self.wlog.info(f"Adding dir {file_name} to dir {child_node.label}")
+                        child_node.add(file_name)
+                    else:
+                        self.wlog.info(f"Adding file {file_name} to dir {child_node.label}")
+                        child_node.add_leaf(file_name)
+                else:
+                    self.wlog.info(f"node not Found {fs.src_path}")
+
+            case 'deleted':
+                child_node = self.find_child_node(self.dirtree.root, fs.src_path.split('/')[2:])
+                if child_node:
+                    self.wlog.info(f"deleting node {child_node.label}")
+                    child_node.remove()
+                else:
+                    self.wlog.info(f"node not Found {fs.src_path}")
 
     @on(FSEHandler.Info)
     def log_info(self, msg: FSEHandler.Info):

@@ -2,10 +2,8 @@ import time
 
 from textual import on, work
 from textual.app import ComposeResult
-from textual.containers import Horizontal
 from textual.events import MouseDown
-from textual.message import Message
-from textual.widgets import Static, Tree, Button
+from textual.widgets import Static, Tree
 from textual.widgets._tree import TreeNode
 
 from ai import AI
@@ -169,6 +167,7 @@ class ProcessEditor(Static):
 
     @work
     async def execute_process(self, process_name: str):
+        self.selected_process = process_name
         self.plog.info(f"Begin Execution of Process {self.selected_process}")
         step_no = 1
         start_time = time.time()

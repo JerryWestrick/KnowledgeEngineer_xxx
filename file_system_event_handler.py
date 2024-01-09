@@ -32,26 +32,27 @@ class FSEHandler(FileSystemEventHandler):
             self.src_path: str = src_path
             self.dst_path: str = dst_path
 
-    def __init__(self, app: App) -> None:
+    def __init__(self, app: App, watch_dir: str) -> None:
         super().__init__()
         self.app = app
         self.observer = Observer()
+        self.watch_dir: str = watch_dir
 
-        self.observer.schedule(self, 'Memory/', recursive=True)
+        self.observer.schedule(self, self.watch_dir, recursive=True)
         t = Worker(self.app, self.observer.start(), name="WatchDog", description="Separate Thread running WatchDog",
                    thread=True)
         self.app.workers.add_worker(t, start=False, exclusive=True)
 
     def on_any_event(self, event):
 
-        self.app.post_message(
-            FSEHandler.Info("on_any_event",
-                 f"event_Type={event.event_type}, "
-                 f"is_dir={event.is_directory}, "
-                 f"src_path={event.src_path}, "
-                 f"dst_path={getattr(event, 'dest_path', '')}"
-                 )
-        )
+        # self.app.post_message(
+        #     FSEHandler.Info("on_any_event",
+        #                     f"event_Type={event.event_type}, "
+        #                     f"is_dir={event.is_directory}, "
+        #                     f"src_path={event.src_path}, "
+        #                     f"dst_path={getattr(event, 'dest_path', '')}"
+        #                     )
+        # )
 
         match event.event_type:
             case 'opened' | 'closed':

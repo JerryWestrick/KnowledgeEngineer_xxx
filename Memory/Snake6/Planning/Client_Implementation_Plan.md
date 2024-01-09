@@ -4,143 +4,79 @@ This document outlines the implementation plan for the client-side of the Snake 
 
 ## 1. Single HTML File (`SnakeClient.html`)
 - **Function**: `initializeClient`
-- **Interface**: None (HTML file initialization)
-- **Logic**: 
-  - Load the HTML content with embedded CSS and JavaScript.
-  - Call `connectWebSocket` to establish a connection.
-  - Call `promptUsername` to get the user's username.
+  - **Interface**: This function will be invoked when the HTML file is loaded.
+  - **Logic**: It will set up the initial state of the client, including loading the CSS and JavaScript within the HTML file.
 
-## 2. Websocket Connection
+## 2. WebSockets
 - **Function**: `connectWebSocket`
-- **Interface**: None (WebSocket API)
-- **Logic**: 
-  - Create a new WebSocket connection to the server.
-  - Set up event listeners for `onopen`, `onmessage`, `onerror`, and `onclose`.
+  - **Interface**: This function will be called after the client is initialized.
+  - **Logic**: It will establish a WebSocket connection to the server and set up event listeners for messages from the server.
 
-## 3. Username Prompt
+- **Function**: `handleWebSocketMessages`
+  - **Interface**: This function will be an event handler for incoming WebSocket messages.
+  - **Logic**: It will parse the messages and call appropriate functions based on the message type (e.g., `updateGameStatus`, `handleSnakeDied`).
+
+## 3. User Interface
 - **Function**: `promptUsername`
-- **Interface**: `window.prompt`
-- **Logic**: 
-  - Prompt the user for a username.
-  - Validate the input and retry if necessary.
-  - Store the username for future use.
+  - **Interface**: This function will be called during client initialization.
+  - **Logic**: It will prompt the user for a username and send a 'Joining' message to the server with the provided username.
 
-## 4. Joining Message
-- **Function**: `sendJoiningMessage`
-- **Interface**: `WebSocket.send`
-- **Logic**: 
-  - Construct a "Joining" message with the username.
-  - Send the message through the WebSocket connection.
-
-## 5. Direction Change Handling
-- **Function**: `handleDirectionChange`
-- **Interface**: `document.addEventListener('keydown')`
-- **Logic**: 
-  - Listen for arrow key presses.
-  - Map the key presses to directions.
-  - Send a "DirectionChange" message with the new direction.
-
-## 6. Game Board Display
 - **Function**: `displayGameBoard`
-- **Interface**: HTML `<div>` elements
-- **Logic**: 
-  - Create a 100x100 grid of div elements.
-  - Apply styles for the frame and resizing behavior.
-  - Update the grid based on the "GameStatus" message.
+  - **Interface**: This function will be called whenever the game board needs to be updated.
+  - **Logic**: It will render the game board with a frame and ensure it is resizable.
 
-## 7. Client List Display
-- **Function**: `displayClientList`
-- **Interface**: HTML `<div>` element
-- **Logic**: 
-  - Create a status bar element.
-  - Update the status bar with client information from the "GameStatus" message.
+- **Function**: `updateClientList`
+  - **Interface**: This function will be called with the latest client list.
+  - **Logic**: It will update the status bar with the scores and usernames of all clients.
 
-## 8. Game Status Updates
+## 4. Game Interaction
+- **Function**: `detectArrowKeyPress`
+  - **Interface**: This function will be an event listener for keypress events.
+  - **Logic**: It will detect arrow key presses and send a 'DirectionChange' message to the server with the new direction.
+
+## 5. Game Updates
 - **Function**: `updateGameStatus`
-- **Interface**: `WebSocket.onmessage`
-- **Logic**: 
-  - Parse the "GameStatus" message.
-  - Call `displayGameBoard` and `displayClientList` with the new data.
+  - **Interface**: This function will be called with the latest game status from the server.
+  - **Logic**: It will update the game board and client list based on the received 'GameStatus' message.
 
-## 9. Snake Death Handling
-- **Function**: `handleSnakeDeath`
-- **Interface**: `window.alert`
-- **Logic**: 
-  - Display a pop-up dialog informing the user of their snake's death.
+## 6. Handling Game Events
+- **Function**: `handleSnakeDied`
+  - **Interface**: This function will be called when a 'SnakeDied' message is received.
+  - **Logic**: It will display a pop-up dialog informing the user that their snake has died.
 
-## 10. Resilient Connection
-- **Function**: `attemptReconnect`
-- **Interface**: `setTimeout`
-- **Logic**: 
-  - On disconnection, attempt to reconnect after a delay.
-  - Increase the delay between attempts up to a maximum value.
+## 7. Responsiveness
+- **Function**: `adjustLayoutForDevice`
+  - **Interface**: This function will be called on window resize events.
+  - **Logic**: It will adjust the layout and size of game elements to ensure the interface is responsive.
 
-## 11. Security
-- **Function**: `secureConnection`
-- **Interface**: None (Best practices)
-- **Logic**: 
-  - Use `wss://` for secure WebSocket connections.
-  - Implement input validation and sanitization.
-
-## 12. User Interface Responsiveness
-- **Function**: `makeResponsive`
-- **Interface**: CSS media queries, JavaScript
-- **Logic**: 
-  - Use media queries for different screen sizes.
-  - Adjust game board and elements dynamically with JavaScript.
-
-## 13. Error Handling
+## 8. Error Handling
 - **Function**: `handleErrors`
-- **Interface**: `window.onerror`
-- **Logic**: 
-  - Catch and log errors.
-  - Provide user feedback for recoverable errors.
+  - **Interface**: This function will be called when an error occurs.
+  - **Logic**: It will handle errors gracefully, including displaying error messages and attempting to reconnect if necessary.
 
-## 14. Visual Aesthetics
-- **Function**: `applyStyles`
-- **Interface**: CSS
-- **Logic**: 
-  - Define a color scheme and layout in CSS.
-  - Apply styles to HTML elements for a cohesive look.
+## 9. Security Considerations
+- **Function**: `validateMessages`
+  - **Interface**: This function will be called for each incoming message.
+  - **Logic**: It will validate the messages to prevent cheating and ensure fair play.
 
-## 15. Performance Optimization
+## 10. User Experience
+- **Function**: `optimizeRendering`
+  - **Interface**: This function will be called during game updates.
+  - **Logic**: It will optimize rendering to provide a smooth and intuitive user experience with minimal latency.
+
+## 11. Performance Optimization
 - **Function**: `optimizePerformance`
-- **Interface**: JavaScript performance best practices
-- **Logic**: 
-  - Minimize DOM manipulations.
-  - Use efficient data structures and algorithms.
+  - **Interface**: This function will be called periodically.
+  - **Logic**: It will perform performance optimizations such as minimizing reflows and repaints.
 
-## 16. Accessibility
+## 12. Accessibility
 - **Function**: `enhanceAccessibility`
-- **Interface**: ARIA attributes, keyboard event listeners
-- **Logic**: 
-  - Add ARIA attributes for screen readers.
-  - Ensure keyboard navigation is possible and intuitive.
+  - **Interface**: This function will be called during client initialization.
+  - **Logic**: It will implement accessibility features such as keyboard navigation and screen reader support.
 
-## 17. Sound Effects
-- **Function**: `playSoundEffects`
-- **Interface**: HTML `<audio>` element
-- **Logic**: 
-  - Trigger sound effects for game events.
-  - Provide a way to mute/unmute sounds.
+## 13. Documentation
+- **Function**: `documentCode`
+  - **Interface**: This function represents the practice of documenting code.
+  - **Logic**: It will involve writing clear comments and documentation within the code to explain the functionality and facilitate future modifications.
 
-## 18. Game Instructions
-- **Function**: `showInstructions`
-- **Interface**: HTML `<div>` element
-- **Logic**: 
-  - Display a modal or section with game instructions.
-  - Include controls and objectives.
-
-## 19. Client-Side Validation
-- **Function**: `validateInput`
-- **Interface**: JavaScript
-- **Logic**: 
-  - Check user input before sending messages.
-  - Prevent invalid or malicious data from being sent.
-
-## 20. Customization Options
-- **Function**: `offerCustomization`
-- **Interface**: HTML `<select>` element, CSS
-- **Logic**: 
-  - Provide options for snake characters and themes.
-  - Apply the selected options to the game board and snake representation.
+Each function will be implemented with careful consideration of the requirements and will include extensive documentation to ensure clarity and maintainability.

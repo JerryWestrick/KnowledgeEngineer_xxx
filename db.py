@@ -16,7 +16,7 @@ from logger import Logger
 
 class DB:
     """A simple key-value store, where keys are filenames and values are file contents."""
-    log = Logger(namespace='DB', debug=True)
+    log = Logger(namespace='DB', debug=False)
     # a class variable holding a dictionary of all macro_name -> values
     # this is used to replace macro names in the contents of the files
     # macro syntax is '${macro_name}$ i.e. ${version}$ will be replaced with the version number defined below'

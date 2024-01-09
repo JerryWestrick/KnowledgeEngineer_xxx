@@ -1,64 +1,38 @@
 Log of Step: Make SnakeServer : Snake6/Prompts/Make SnakeServer.pe
 
 
- - I have created the `SnakeServer.py` file with placeholders for all the functions outlined in the `Server_Implementation_Plan.md`. Each function has a docstring explaining its parameters and purpose, and a placeholder for its code.
+ - The functions outlined in the `Server_Implementation_Plan.md` have been coded into the file `Snake6/Code/SnakeServer.py` with docstrings explaining their parameters and function, and placeholders for their code.
 
- - 
-Continue?
+ - Continue?
 
- - 
-Continue?
+ - Continue?
 
- - 
-Continue?
+ - Continue?
 
- - 
-Continue?
+ - Continue?
 
- - 
-Continue?
+ - Continue?
 
- - 
-Continue?
+ - Continue?
 
- - 
-Continue?
+ - Continue?
 
- - 
-Continue?
+ - Continue?
 
- - 
-Continue?
+ - Continue?
 
- - 
-Continue?
+ - Continue?
 
- - 
-Continue?
+ - Continue?
 
- - 
-Continue?
+ - Continue?
 
- - 
-Continue?
+ - Continue?
 
- - 
-Continue?
+ - Continue?
 
- - 
-Continue?
+ - Continue?
 
- - 
-Continue?
+ - Continue?
 
- - 
-Continue?
-
- - 
-Continue?
-
- - 
-Continue?
-
- - 
-Done!
+ - Done!
