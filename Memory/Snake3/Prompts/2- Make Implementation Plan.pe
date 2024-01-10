@@ -1,0 +1,7 @@
+.include Snake3/Requirements/Actor.pe
+.user
+Read the requirements from file 'Snake3/Planning/Requirements.md'.
+Create Implementation Plan in file 'Snake3/Planning/Implementation_Plan.md'
+.exec
+Study the implementation plan.  Write a new version of 'Snake3/Planning/Implementation_Plan.md' including any
+forgotten requirements or routines.

@@ -1,10 +1,10 @@
 Log of Step: Make Requirements : Snake6/Prompts/Make Requirements.pe
 
 
- - The task has been completed and the file 'Snake6/Planning/Server_Requirements.md' has been written with the detailed server requirements for the Snake Online Game.
+ - I have written the Server Requirements with a detailed description of each requirement to the file 'Snake6/Planning/Server_Requirements.md'. You can find the file [here](sandbox:/Snake6/Planning/Server_Requirements.md).
 
- - The task has been completed and the file 'Snake6/Planning/Client_Requirements.md' has been written with the detailed client requirements for the Snake Online Game.
+ - I have written the Client Requirements with a detailed description of each requirement to the file 'Snake6/Planning/Client_Requirements.md'. You can find the file [here](sandbox:/Snake6/Planning/Client_Requirements.md).
 
- - The task has been completed and the file 'Snake6/Planning/Messages.md' has been written with the list of messages including their senders, receivers, descriptions, and examples for the Snake Online Game.
+ - I have listed all the messages with their senders, receivers, a short description, and an example message in the file 'Snake6/Planning/Messages.md'. You can find the file [here](sandbox:/Snake6/Planning/Messages.md).
 
- - The task has been completed and the file 'Snake6/Code/Snake_Constants.py' has been written with all the constants described for the Snake Online Game. The Python code has been checked for correctness.
+ - I have created the Python code for the Snake constants and written it to the file 'Snake6/Code/Snake_Constants.py'. You can find the file [here](sandbox:/Snake6/Code/Snake_Constants.py).
