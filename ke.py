@@ -19,7 +19,8 @@ class KEApp(App):
     BINDINGS = [
         ('d', 'toggle_dark', "Toggle dark mode"),
         ('q', 'quit', "Quit Application"),
-        ('l', 'toggle_log', "Toggle log / gui mode")
+        ('l', 'Log Mode', "Switch to Log mode"),
+        ('g', 'GUI Mode', "Switch to GUI mode")
     ]
     TITLE = "Knowledge Engineer"
     SUB_TITLE = "AI Prompt Memory Engineering Tool"

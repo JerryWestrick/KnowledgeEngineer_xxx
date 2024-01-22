@@ -5,8 +5,6 @@ from pathlib import Path
 import re
 import glob
 
-from textual.widgets import RichLog
-
 from line_statement import Compiler
 from logger import Logger
 

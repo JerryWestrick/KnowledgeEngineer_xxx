@@ -1,29 +1,34 @@
-Client Requirements
+# Client Requirements for Snake Online Game
 
-1. Architecture
+## Detailed Description of Each Requirement
 
-The client part of the multi-user 'Snake' online game will be implemented as a single file called SnakeClient.html. It will use HTML, CSS, JavaScript, and websockets.
+### 1. Single HTML File
+- The client must be contained within a single HTML file, named SnakeClient.html, which includes HTML, CSS, and JavaScript.
 
-2. Game Board
+### 2. WebSocket Communication
+- The client must establish a WebSocket connection to communicate with the server in real-time.
+- It should handle messages such as 'Joining', 'DirectionChange', 'SnakeDied', and 'GameStatus'.
 
-The game board will be a resizable 2D grid with a size of 100x100. It will display a frame and the characters representing the snakes and foods. The characters displayed on the board should be resized along with the board.
+### 3. User Interface
+- The client should prompt the user for a username upon starting.
+- It must display the game board with a frame and ensure that it is resizable.
+- The characters on the game board should resize with the board.
+- A status bar at the bottom of the window should display the client list with characters, usernames, and scores.
 
-3. Client List
+### 4. User Input
+- The client must detect arrow key presses to change the direction of the snake.
+- It should send the 'DirectionChange' message with the new direction to the server.
 
-The client list will be displayed in a status bar at the bottom of the window. It will show the character, username, and score for each client in the game.
+### 5. Game Status Updates
+- The client must update the game board and client list based on the 'GameStatus' messages received from the server.
 
-4. Client Initialization
+### 6. Handling Game Events
+- The client should display a pop-up dialog when the 'SnakeDied' message is received.
 
-The client will prompt the user for a username and connect to the server via a websocket. It will send a 'Joining' message to the server, including the username.
+### 7. Error Handling
+- The client must handle errors gracefully, such as server disconnection or full game.
 
-5. Arrow Key Detection
+### 8. Responsiveness
+- The client interface should be responsive and work across different screen sizes and devices.
 
-The client will detect arrow key presses and send a 'DirectionChange' message to the server with the corresponding direction (Up, Down, Left, or Right).
-
-6. Snake Died
-
-When the client receives a 'SnakeDied' message from the server, it should display a pop-up dialog to notify the user.
-
-7. Game Status
-
-When the client receives a 'GameStatus' message from the server, it should update the game board and client list with the values from the message.
+These requirements ensure that the client can interact with the server, display the game state, and provide a user-friendly experience.

@@ -1,0 +1,136 @@
+{
+  "py/object": "step.Step",
+  "proto": null,
+  "name": "1- Make Requirements",
+  "prompt_name": "Snake6/Prompts/1- Make Requirements.pe",
+  "verify_prompt": "",
+  "storage_path": "Snake6/Planning",
+  "text_file": "1- Make Requirements Log.md",
+  "file_process_enabled": false,
+  "file_process_name": "",
+  "file_glob": "",
+  "macros": {},
+  "ai": {
+    "py/object": "ai.AI",
+    "temperature": 0.0,
+    "max_tokens": "50000",
+    "model": "gpt-4-1106-preview",
+    "mode": "chat",
+    "messages": [
+      {
+        "role": "system",
+        "content": "\nYou are an IT Engineer, programming a Python 3 Application\nDo not explain yourself.\nDo not apologize.\nComplete the tasks given in a way that is optimized for Chat GPT's easy comprehension while not leaving anything out.\nCheck all code for correctness.\nAnswers will be in MarkDown.\nWhen correcting files, give all changes in '.patch' format and download the .patch files"
+      },
+      {
+        "role": "user",
+        "content": "The file 'Snake6/Requirements/ApplicationDescription.md' has a description of the application you are working on.\nRead the file 'Snake6/Requirements/ApplicationDescription.md'\nWrite Server Requirements with Detailed Description of each requirement to the file 'Snake6/Planning/Server_Requirements.md'"
+      },
+      {
+        "role": "assistant",
+        "content": null,
+        "function_call": {
+          "name": "read_file",
+          "arguments": "{\n  \"name\": \"Snake6/Requirements/ApplicationDescription.md\"\n}"
+        }
+      },
+      {
+        "role": "function",
+        "name": "read_file",
+        "content": "# Game constants\n    BOARD_SIZE = 100\n    SNAKE_CHARACTERS = [\"\ud83d\udd34\", \"\ud83d\udd35\", \"\ud83d\udfe0\", \"\ud83d\udfe1\", \"\ud83d\udfe2\", \"\ud83d\udfe3\", \"\ud83d\udfe4\"]\n    FOOD_CHAR = \"\ud83c\udf4e\"\n    FOOD_COUNT = 5\n    DIRECTION = {\"Stop\": (0, 0), \"Up\": (0,-1), \"Down\": (0,1), \"Left\": (-1,0), \"Right\": (1,0) }\n    \n    \n    GameStatus = {\n        \"game_board\": \" \" * (BOARD_SIZE * BOARD_SIZE),  # (100 strings of 100 spaces)\n        \"free_snake_chars\": [\"\ud83d\udd34\", \"\ud83d\udd35\", \"\ud83d\udfe0\", \"\ud83d\udfe1\", \"\ud83d\udfe2\", \"\ud83d\udfe3\", \"\ud83d\udfe4\"],\n        \"foods\": [(50, 2), (5, 20), (34, 12), (50, 2), (12, 98)],\n        \"clients\": {\n          websocket1: {\"name\": \"Jerry\", \"char\": \"\ud83d\udd34\", \"snake\": [(5, 3), (5, 4), (6, 4)], \"score\": 127, \"direction\": \"Up\"},\n          websocket2: {\"name\": \"Tom\", \"char\": \"\ud83d\udd35\", \"snake\": [(6, 12), (6, 13), (6, 14)], \"score\": 27, \"direction\": \"Left\"}\n        }\n    }\n\n### Note: \n\nGameStatus['clients'] should be {} (empty), \nbecause websocket1, websocket2 will be added at runtime \n\n\n# The Server side of a multi-user \"Snake\" online game.\n\n## Server is SnakeServer.py\n\n#### Architecture: \npython 3, with Async IO, aiohttp serving SnakeClient.html, and connect via websockets\n\n#### The game_board \n(a 100 x 100 2d character representation of the playing ground) is kept up to date with the values of Snakes and Foods; Therefor you can check for collisions by checking the value of the character in the game_board at position (x, y).\n\n#### Ticks Logic:\nThe game is implemented as Ticks (5 per second).\n##### Tick:\n    1. move each snake who's direction is not 'Stop':\n        new_head = head of snake + snake direction.\n\n        if new_head x or y are not in bounds: Snake_Dies\n        if game_board at new_head is a snake character: Snake_Dies.\n\n        if game_board at new_head is a food:\n            - game_board at new_head draw client char\n            - push new_head (x, y) onto front of snake\n            - remove new_head from foods.\n            - find a random (fx, fy) that is Space, add it to foods, and draw food char.\n            - add 100 to snake score.\n\n        if game_board at new_head is Space:\n            - game_board at new_head draw client char\n            - push new_head (x, y) onto front of snake\n            - pop last position from snake as tail.\n            - game_board at tail draw space\n            - add 1 to snake score\n\n    2. Send GameStatus to all connected Clients.\n\n##### Snake_Dies:\n    - Send SnakeDied message to client.\n    - erase client snake from the board.\n    - Do Reset_A_Client:\n\n##### Reset_A_Client:\n    - new snake head is at random position so new snake is [(x, y), (x, y+1), (x, y+2)]\n        where game_board at each [(x, y), (x, y+1), (x, y+2)] == space\n            set client snake to new snake\n    - draw Client snake on game_board\n    - the Client score is set to zero\n    - the Client direction is set to \"Stop\"\n\n##### When Server receives \"Joining\":\n    - if free_snake_chars is empty then close websocket\n    - take a char from free_snake_chars and assign it to the Client as 'char'.\n    - the client['username']= username\n    - Do Reset_A_Client.\n\n##### Server When websocket disconnect:\n    - return Client char to game_state free_snake_chars.\n    - erase client snake from game_board\n    - del game_status['clients'][websocket]\n\n##### Server At Startup:\n    - At startup The Server will start a HTTP Server that serves the file SnakeClient.html\n\n# implement the client of a multi-user \"Snake\" online game.\n## The Client part is SnakeClient.html\nThe Client part is a single file containing html, css, and javascript called SnakeClient.html\n\n#### Client Architecture: \nuse html, css, javascript, websockets all in a single file.\n\n#### Display Artifacts:\n##### GameBoard:\n- The GameBoard is a 2d 100 x 100 character array with default character \" \".\n- The Board needs a frame.\n- The Board needs to be resizable, the characters displayed in board need to be resized with board.\n\n##### Client List:\n- The client list is displayed in a status bar at bottom of window.\n- display \"{client.char}{client.username}:{client.score} \" for each client in game_status.clients\n- for example: \"\ud83d\udd34Jerry:150  \ud83d\udd35Tom:423\"\n\n##### Client initialization:\n- the Client prompts the user for a username.\n- the Client connects via websocket\n- the Client sends a \"Joining\" message (which includes the username).\n\n##### Client detects arrow keys:\n- it sends \"DirectionChange\" message with 'Up', 'Down', 'Left', or 'Right', which starts the client.\n\n##### Client receives SnakeDied:\n- client shows pop-up dialog.\n\n##### Client receives GameStatus:\n- replace GameBoard and Client List with values from message"
+      },
+      {
+        "role": "assistant",
+        "content": null,
+        "function_call": {
+          "name": "write_file",
+          "arguments": "{\n  \"name\": \"Snake6/Planning/Server_Requirements.md\",\n  \"contents\": \"Server Requirements\\n\\n1. Architecture\\n\\nThe server side of the multi-user 'Snake' online game will be implemented in Python 3 using Async IO and aiohttp to serve the SnakeClient.html file and connect via websockets.\\n\\n2. Game Board\\n\\nThe server will maintain a 100x100 2D character representation of the playing ground called the game_board. The game_board will be updated with the values of snakes and foods. Collisions can be checked by examining the character value in the game_board at a specific position.\\n\\n3. Ticks Logic\\n\\nThe game will be implemented using ticks, with 5 ticks per second. Each tick will perform the following actions:\\n\\n- Move each snake whose direction is not 'Stop'. If the new head position is out of bounds or collides with another snake, the snake dies.\\n- If the new head position contains a food, the snake eats it, increases its score, and a new food is randomly placed on the game_board.\\n- If the new head position is empty, the snake moves to the new position and its tail is updated.\\n- The updated game status is sent to all connected clients.\\n\\n4. Snake Dies\\n\\nWhen a snake dies, the server sends a SnakeDied message to the client, erases the client's snake from the game_board, and performs a reset for the client.\\n\\n5. Reset A Client\\n\\nWhen resetting a client, a new snake head is randomly positioned on the game_board, the client's snake is updated, the client's score is set to zero, and the client's direction is set to 'Stop'.\\n\\n6. Joining\\n\\nWhen a client sends a 'Joining' message, the server assigns a free snake character to the client, sets the client's username, and performs a reset for the client. If there are no free snake characters available, the server closes the websocket connection.\\n\\n7. Websocket Disconnect\\n\\nWhen a websocket disconnects, the server returns the client's snake character to the pool of free snake characters, erases the client's snake from the game_board, and removes the client from the game_status.\\n\\n8. Startup\\n\\nAt startup, the server starts an HTTP server to serve the SnakeClient.html file.\\n\"\n}"
+        }
+      },
+      {
+        "role": "function",
+        "name": "write_file",
+        "content": "Done."
+      },
+      {
+        "role": "assistant",
+        "content": "I have written the Server Requirements with a detailed description of each requirement to the file 'Snake6/Planning/Server_Requirements.md'."
+      },
+      {
+        "role": "user",
+        "content": "Write Client Requirements with Detailed Description of each requirement to the file 'Snake6/Planning/Client_Requirements.md'."
+      },
+      {
+        "role": "assistant",
+        "content": null,
+        "function_call": {
+          "name": "write_file",
+          "arguments": "{\n  \"name\": \"Snake6/Planning/Client_Requirements.md\",\n  \"contents\": \"Client Requirements\\n\\n1. Architecture\\n\\nThe client part of the multi-user 'Snake' online game will be implemented as a single file called SnakeClient.html, which will contain HTML, CSS, and JavaScript. The client will use websockets to connect to the server.\\n\\n2. Game Board\\n\\nThe client will display a 2D 100x100 character array representing the game board. The game board will have a frame and will be resizable. The characters displayed on the board should be resized accordingly.\\n\\n3. Client List\\n\\nThe client will display a status bar at the bottom of the window showing the list of connected clients. Each client will be represented by their character and username, followed by their score. For example, '\ud83d\udd34Jerry:150  \ud83d\udd35Tom:423'.\\n\\n4. Client Initialization\\n\\nThe client will prompt the user for a username and connect to the server using websockets. The client will send a 'Joining' message to the server, including the username.\\n\\n5. Arrow Key Detection\\n\\nThe client will detect arrow key presses and send a 'DirectionChange' message to the server with the corresponding direction ('Up', 'Down', 'Left', or 'Right').\\n\\n6. Snake Died\\n\\nWhen the client receives a 'SnakeDied' message from the server, it should display a pop-up dialog to notify the user.\\n\\n7. Game Status\\n\\nWhen the client receives a 'GameStatus' message from the server, it should update the game board and client list with the values provided in the message.\\n\"\n}"
+        }
+      },
+      {
+        "role": "function",
+        "name": "write_file",
+        "content": "Done."
+      },
+      {
+        "role": "assistant",
+        "content": "I have written the Client Requirements with a detailed description of each requirement to the file 'Snake6/Planning/Client_Requirements.md'."
+      },
+      {
+        "role": "user",
+        "content": "List all messages with their senders, receivers, a short description, and an example message to the file 'Snake6/Planning/Messages.md'."
+      },
+      {
+        "role": "assistant",
+        "content": null,
+        "function_call": {
+          "name": "write_file",
+          "arguments": "{\n  \"name\": \"Snake6/Planning/Messages.md\",\n  \"contents\": \"Messages\\n\\n| Message | Sender | Receiver | Description | Example |\\n|---------|--------|----------|-------------|---------|\\n| Joining | Client | Server | Sent by the client when joining the game. Includes the username. | {\\\"message\\\": \\\"Joining\\\", \\\"username\\\": \\\"Alice\\\"} |\\n| DirectionChange | Client | Server | Sent by the client when the arrow keys are pressed to change the snake's direction. Includes the new direction. | {\\\"message\\\": \\\"DirectionChange\\\", \\\"direction\\\": \\\"Up\\\"} |\\n| SnakeDied | Server | Client | Sent by the server when a snake dies. Notifies the client that their snake has died. | {\\\"message\\\": \\\"SnakeDied\\\"} |\\n| GameStatus | Server | Client | Sent by the server to update the client with the current game status. Includes the game board and client list. | {\\\"message\\\": \\\"GameStatus\\\", \\\"game_board\\\": [...], \\\"client_list\\\": [...]} |\\n\"\n}"
+        }
+      },
+      {
+        "role": "function",
+        "name": "write_file",
+        "content": "Done."
+      },
+      {
+        "role": "assistant",
+        "content": "I have listed all the messages with their senders, receivers, a short description, and an example message in the file 'Snake6/Planning/Messages.md'."
+      },
+      {
+        "role": "user",
+        "content": "Create python code Snake_Constants.py containing all constants described.\nCheck the python code for correctness.\nWrite the file 'Snake6/Code/Snake_Constants.py'."
+      },
+      {
+        "role": "assistant",
+        "content": null,
+        "function_call": {
+          "name": "write_file",
+          "arguments": "{\n  \"name\": \"Snake6/Code/Snake_Constants.py\",\n  \"contents\": \"BOARD_SIZE = 100\\nSNAKE_CHARACTERS = [\\\"\ud83d\udd34\\\", \\\"\ud83d\udd35\\\", \\\"\ud83d\udfe0\\\", \\\"\ud83d\udfe1\\\", \\\"\ud83d\udfe2\\\", \\\"\ud83d\udfe3\\\", \\\"\ud83d\udfe4\\\"]\\nFOOD_CHAR = \\\"\ud83c\udf4e\\\"\\nFOOD_COUNT = 5\\nDIRECTION = {\\\"Stop\\\": (0, 0), \\\"Up\\\": (0,-1), \\\"Down\\\": (0,1), \\\"Left\\\": (-1,0), \\\"Right\\\": (1,0)}\\n\\nGameStatus = {\\n    \\\"game_board\\\": \\\" \\\" * (BOARD_SIZE * BOARD_SIZE),\\n    \\\"free_snake_chars\\\": [\\\"\ud83d\udd34\\\", \\\"\ud83d\udd35\\\", \\\"\ud83d\udfe0\\\", \\\"\ud83d\udfe1\\\", \\\"\ud83d\udfe2\\\", \\\"\ud83d\udfe3\\\", \\\"\ud83d\udfe4\\\"],\\n    \\\"foods\\\": [(50, 2), (5, 20), (34, 12), (50, 2), (12, 98)],\\n    \\\"clients\\\": {}\\n}\\n\"\n}"
+        }
+      },
+      {
+        "role": "function",
+        "name": "write_file",
+        "content": "Done."
+      },
+      {
+        "role": "assistant",
+        "content": "I have created the Python code for the Snake constants and checked it for correctness. The code has been written to the file 'Snake6/Code/Snake_Constants.py'."
+      }
+    ],
+    "answer": "Log of Step: Make Requirements : Snake6/Prompts/Make Requirements.pe\n\n\n - I have written the Server Requirements with a detailed description of each requirement to the file 'Snake6/Planning/Server_Requirements.md'.\n\n - I have written the Client Requirements with a detailed description of each requirement to the file 'Snake6/Planning/Client_Requirements.md'.\n\n - I have listed all the messages with their senders, receivers, a short description, and an example message in the file 'Snake6/Planning/Messages.md'.\n\n - I have created the Python code for the Snake constants and checked it for correctness. The code has been written to the file 'Snake6/Code/Snake_Constants.py'.",
+    "files": {},
+    "e_stats": {
+      "prompt_tokens": 20127.0,
+      "completion_tokens": 1508.0,
+      "total_tokens": 21635,
+      "sp_cost": 0.060381,
+      "sc_cost": 0.006032,
+      "s_total": 0.066413,
+      "elapsed_time": 36.675313234329224
+    }
+  },
+  "pname": "Snake6",
+  "interaction_no": 9
+}

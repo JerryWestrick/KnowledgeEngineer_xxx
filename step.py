@@ -1,9 +1,7 @@
 # The name of the step is the key to the dictionary
 
-import json
 import time
 
-from textual.widgets import RichLog
 
 from ai import AI
 from db import DB
@@ -87,8 +85,8 @@ class Step:
     async def run(self, pname):
         self.pname = pname  # Add name of process to step...
         self.interaction_no = 0  # start count of interactions with AI
-        msg = {}
-        msgs = []
+        # msg = {}
+        # msgs = []
         start_time = time.time()
         head_len = 12
         head = ' ' * head_len
@@ -113,9 +111,9 @@ class Step:
         self.ai.e_stats['elapsed_time'] = 0.0
 
         top_left = '╭─ '
-        top_right = '─╮'
+        # top_right = '─╮'
         bottom_left = '╰──'
-        bottom_right = '──╯'
+        # bottom_right = '──╯'
 
         txt = f'{top_left}Step: {self.pname}:{self.name} -- {self.prompt_name}'
         self.log.info(f"{txt}")

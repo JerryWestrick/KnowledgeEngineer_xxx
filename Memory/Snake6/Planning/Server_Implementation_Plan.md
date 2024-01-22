@@ -1,191 +1,115 @@
 # Server Implementation Plan for Snake Online Game
 
-This document maps each server requirement to functions describing the interface and logic of each function, including extensive documentation for each function.
+This document outlines the implementation plan for the server of the Snake Online Game, mapping each requirement to functions with their interface and logic, including extensive documentation.
 
-## 1. Python 3 and Async IO
+## Python 3 with Async IO (Requirement 1)
 
 ### Function: `start_server`
-- **Purpose**: Initializes the server using Python 3 and sets up asynchronous I/O operations.
-- **Logic**: 
-  - Import necessary modules (`asyncio`, `aiohttp`, etc.).
-  - Create an event loop.
-  - Start the server coroutine.
-- **Interface**:
-  - No parameters.
-  - Returns a server instance.
+- **Interface**: `async def start_server(host: str, port: int)`
+- **Logic**:
+  - Initialize the server using `asyncio` and `aiohttp` libraries.
+  - Set up routes for serving `SnakeClient.html` and handling WebSocket connections.
+  - Start the server loop to listen for incoming connections on the specified host and port.
 
-## 2. aiohttp Web Server
+## aiohttp for Serving HTML and WebSockets (Requirement 2)
 
 ### Function: `serve_client_html`
-- **Purpose**: Serves the SnakeClient.html file using aiohttp.
-- **Logic**: 
-  - Set up routes to serve static files.
-  - Handle HTTP GET request to serve SnakeClient.html.
-- **Interface**:
-  - No parameters.
-  - Returns an HTTP response with the content of SnakeClient.html.
+- **Interface**: `async def serve_client_html(request)`
+- **Logic**:
+  - Serve the `SnakeClient.html` file to clients when they connect via HTTP.
+  - This function will be registered as a route in the aiohttp application.
 
 ### Function: `websocket_handler`
-- **Purpose**: Manages websocket connections for real-time communication.
-- **Logic**: 
-  - Accept new websocket connections.
-  - Process incoming messages and send responses.
-  - Handle disconnections.
-- **Interface**:
-  - `request`: The request object from aiohttp.
-  - Returns a websocket response object.
+- **Interface**: `async def websocket_handler(request)`
+- **Logic**:
+  - Establish a WebSocket connection with the client.
+  - Handle incoming messages and delegate to appropriate functions based on message type.
+  - Maintain the connection open for real-time communication.
 
-## 3. Game Board Management
+## Game Board Management (Requirement 3)
+
+### Function: `initialize_game_board`
+- **Interface**: `def initialize_game_board() -> List[List[str]]`
+- **Logic**:
+  - Create a 100x100 2D list filled with spaces to represent the game board.
+  - Return the initialized game board.
 
 ### Function: `update_game_board`
-- **Purpose**: Updates the game board with the positions of snakes and food items.
-- **Logic**: 
-  - Iterate over the game board and update characters based on snake and food positions.
-  - Check for collisions and update the game state accordingly.
-- **Interface**:
-  - No parameters.
-  - Returns nothing, but modifies the global `GameStatus` object.
+- **Interface**: `def update_game_board(game_board: List[List[str]], game_state: dict)`
+- **Logic**:
+  - Update the game board with the positions of snakes and food items based on the current game state.
+  - Use the `SNAKE_CHARACTERS` and `FOOD_CHAR` constants for representation.
 
-## 4. Game Ticks
+## Game Ticks (Requirement 4)
 
 ### Function: `game_tick`
-- **Purpose**: Implements game logic in ticks, handling movement, collisions, and scoring.
-- **Logic**: 
-  - Move snakes according to their directions.
-  - Handle snake collisions with walls, other snakes, or food.
-  - Update scores and spawn new food if necessary.
-- **Interface**:
-  - No parameters.
-  - Returns nothing, but modifies the global `GameStatus` object.
+- **Interface**: `async def game_tick(game_state: dict)`
+- **Logic**:
+  - Perform one tick of the game logic, including moving snakes and handling collisions.
+  - Update the scores and game state accordingly.
+  - Schedule the next tick using `asyncio` after a delay to maintain 5 ticks per second.
 
-## 5. Client Management
+## Client Management (Requirement 5)
 
-### Function: `handle_joining`
-- **Purpose**: Manages new client joining the game.
-- **Logic**: 
-  - Assign a character to the new client.
-  - Initialize the client's snake and score.
-  - Add the client to the `GameStatus['clients']` dictionary.
-- **Interface**:
-  - `username`: The username of the joining client.
-  - `websocket`: The websocket object associated with the client.
-  - Returns nothing, but modifies the global `GameStatus` object.
+### Function: `handle_client_joining`
+- **Interface**: `async def handle_client_joining(websocket, username: str, game_state: dict)`
+- **Logic**:
+  - Assign a character to the new client from the available characters.
+  - Initialize the client's snake and add them to the game state.
+  - If no characters are available, close the WebSocket connection.
 
-### Function: `handle_disconnect`
-- **Purpose**: Manages client disconnection.
-- **Logic**: 
-  - Remove the client's character from the game board.
-  - Return the character to the pool of available characters.
-  - Remove the client from the `GameStatus['clients']` dictionary.
-- **Interface**:
-  - `websocket`: The websocket object associated with the disconnecting client.
-  - Returns nothing, but modifies the global `GameStatus` object.
+### Function: `handle_client_disconnect`
+- **Interface**: `async def handle_client_disconnect(websocket, game_state: dict)`
+- **Logic**:
+  - Remove the client from the game state and return their character to the pool of available characters.
+  - Update the game board to remove the client's snake.
 
-## 6. Scoring and Game Progression
+## Score and Death Handling (Requirement 6)
 
-### Function: `update_scores`
-- **Purpose**: Updates the scores for each client.
-- **Logic**: 
-  - Increment the score for each snake that moves without dying.
-  - Add bonus points for eating food.
-- **Interface**:
-  - No parameters.
-  - Returns nothing, but modifies the `score` attribute of clients in `GameStatus`.
+### Function: `handle_snake_death`
+- **Interface**: `async def handle_snake_death(websocket, game_state: dict)`
+- **Logic**:
+  - Send a `SnakeDied` message to the client.
+  - Reset the client's game state, including their score and snake position.
 
-### Function: `spawn_food`
-- **Purpose**: Spawns new food items on the game board.
-- **Logic**: 
-  - Find empty spaces on the game board.
-  - Place new food items in empty spaces until the `FOOD_COUNT` is reached.
-- **Interface**:
-  - No parameters.
-  - Returns nothing, but modifies the `foods` list in `GameStatus`.
+## Food Item Management (Requirement 7)
 
-## 7. Communication with Clients
+### Function: `place_food_items`
+- **Interface**: `def place_food_items(game_board: List[List[str]], game_state: dict)`
+- **Logic**:
+  - Place `FOOD_COUNT` food items on the game board in empty spaces.
+  - Update the game state with the positions of the new food items.
 
-### Function: `send_game_status`
-- **Purpose**: Sends updated GameStatus to all connected clients each tick.
-- **Logic**: 
-  - Serialize the `GameStatus` object.
-  - Send the serialized data to all connected clients via their websockets.
-- **Interface**:
-  - No parameters.
-  - Returns nothing, but sends data over the network.
+## HTTP Server at Startup (Requirement 8)
 
-### Function: `process_message`
-- **Purpose**: Handles incoming messages from clients.
-- **Logic**: 
-  - Parse the message type.
-  - Call the appropriate handler function based on the message type (e.g., `handle_joining`, `change_direction`).
-- **Interface**:
-  - `message`: The incoming message from a client.
-  - `websocket`: The websocket object associated with the client.
-  - Returns nothing, but may modify the global `GameStatus` object or send responses.
+### Function: `run_http_server`
+- **Interface**: `async def run_http_server(host: str, port: int)`
+- **Logic**:
+  - Start an HTTP server using `aiohttp` to serve `SnakeClient.html`.
+  - This function will be called at server startup.
 
-## 8. HTTP Server at Startup
+## Real-time Communication (Requirement 9)
 
-### Function: `initialize_http_server`
-- **Purpose**: Starts an HTTP server to serve the SnakeClient.html file at startup.
-- **Logic**: 
-  - Set up the aiohttp web application.
-  - Define routes for serving static files and handling websockets.
-  - Start the web server.
-- **Interface**:
-  - No parameters.
-  - Returns nothing, but starts the HTTP server.
+### Function: `broadcast_game_status`
+- **Interface**: `async def broadcast_game_status(game_state: dict)`
+- **Logic**:
+  - Send the updated `GameStatus` message to all connected clients after each tick.
+  - Use the WebSocket connections stored in the game state to broadcast the message.
 
-## 9. Error Handling and Validation
+## Error Handling (Requirement 10)
 
-### Function: `validate_message`
-- **Purpose**: Validates incoming messages from clients for correctness.
-- **Logic**: 
-  - Check the message format and required fields.
-  - Ensure the message content is valid (e.g., valid directions).
-- **Interface**:
-  - `message`: The incoming message to validate.
-  - Returns a boolean indicating whether the message is valid.
+### Function: `handle_errors`
+- **Interface**: `async def handle_errors(websocket, error: Exception)`
+- **Logic**:
+  - Log the error and send an appropriate message to the client if necessary.
+  - Handle disconnections and other exceptions gracefully.
 
-## 10. Security Considerations
+## Logging (Requirement 11)
 
-### Function: `enforce_security`
-- **Purpose**: Implements security measures to prevent cheating and ensure fair play.
-- **Logic**: 
-  - Verify client actions are within the game rules.
-  - Monitor for abnormal behavior that may indicate cheating.
-- **Interface**:
-  - `action`: The client action to validate.
-  - Returns a boolean indicating whether the action is allowed.
+### Function: `log_event`
+- **Interface**: `def log_event(event_type: str, details: str)`
+- **Logic**:
+  - Log game events and client activities to a file or standard output.
+  - Include timestamps and relevant information for debugging and monitoring.
 
-## 11. Logging and Monitoring
-
-### Function: `log_activity`
-- **Purpose**: Logs game activity for monitoring and troubleshooting.
-- **Logic**: 
-  - Write log entries for significant events (e.g., client connections, disconnections, errors).
-- **Interface**:
-  - `event`: The event to log.
-  - `details`: Additional details about the event.
-  - Returns nothing, but writes to the log file or output.
-
-## 12. Resource Management
-
-### Function: `manage_resources`
-- **Purpose**: Efficiently manages resources to handle the game's demands.
-- **Logic**: 
-  - Monitor resource usage (e.g., memory, CPU).
-  - Optimize data structures and algorithms for performance.
-- **Interface**:
-  - No parameters.
-  - Returns nothing, but may trigger resource cleanup or optimization actions.
-
-## 13. Extensibility and Maintenance
-
-### Function: `update_server_code`
-- **Purpose**: Allows for easy updates and maintenance of the server code.
-- **Logic**: 
-  - Organize code into modules and classes.
-  - Document functions and their interfaces.
-  - Follow best practices for code readability and maintainability.
-- **Interface**:
-  - No parameters.
-  - Returns nothing, but facilitates future code updates and maintenance.
+This plan provides a comprehensive guide for implementing the server-side logic of the Snake Online Game, ensuring that all requirements are met with well-defined functions and clear documentation.

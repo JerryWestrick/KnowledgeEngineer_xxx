@@ -3,14 +3,16 @@ import os
 import shutil
 from enum import Enum
 from functools import partial
+from pathlib import Path
 from typing import Any
 
 from textual import on, work
 from textual.app import ComposeResult
 from textual.binding import BindingType, Binding
+from textual.containers import Horizontal
 from textual.events import MouseDown, Key
 from textual.message import Message
-from textual.widgets import DirectoryTree, Static
+from textual.widgets import DirectoryTree, Static, Button
 from textual.widgets._tree import TreeNode, Tree
 from textual.worker import Worker
 from watchdog.events import FileSystemEventHandler
@@ -67,17 +69,61 @@ class DirTree(DirectoryTree):
         self.selected_directory = None
         self.wlog.info(f"file_selected({path})")
         self.post_message(FileEditor.FileAction(FileActionCmd.VIEW, path))
+        self.update_buttons()
+
+    def compose(self) -> ComposeResult:
+        self.dir_new_file_btn = Button("New File", id="dir_new_file_btn", classes="small_btn ")
+        self.dir_del_dir_btn = Button(f"Del {self.selected_directory}", id="dir_del_dir_btn", classes="small_btn ")
+        self.dir_new_dir_btn = Button("New Sub Dir", id="dir_new_dir_btn", classes="small_btn ")
+        self.dir_del_back_btn = Button("Del  .~01~. files", id="dir_del_back_btn", classes="small_btn ")
+
+        yield Horizontal(
+            self.dir_new_file_btn, self.dir_del_dir_btn, self.dir_new_dir_btn, self.dir_del_back_btn,
+            id="dir_btn_bar", classes="btn_bar"
+        )
+
+        self.file_view_file_btn = Button("view File", id="file_view_file_btn", classes="small_btn ")
+        self.file_edit_file_btn = Button(f"Del {self.selected_directory}", id="file_edit_dir_btn", classes="small_btn ")
+        self.file_del_file_btn = Button("New Sub Dir", id="file_del_dir_btn", classes="small_btn ")
+        self.file_new_file_btn = Button("Del  .~01~. files", id="file_new_back_btn", classes="small_btn ")
+        self.file_set_prompt_btn = Button("Set Prompt", id="file_set_prompt_btn", classes="small_btn ")
+        yield Horizontal(
+            self.file_view_file_btn, self.file_edit_file_btn, self.file_del_file_btn, self.file_new_file_btn,
+            self.file_set_prompt_btn,
+            id="file_btn_bar", classes="btn_bar"
+        )
+
+    def update_buttons(self):
+        if self.selected_directory:
+            self.query_one("#dir_btn_bar").remove_class("hidden")
+            self.dir_new_file_btn.label = f"New File"
+            self.dir_del_dir_btn.label = f"Del"
+            self.dir_new_dir_btn.label = f"New Sub Dir"
+            self.dir_del_back_btn.label = f"Del  .~01~. files"
+        else:
+            self.query_one("#dir_btn_bar").add_class("hidden")
+
+        if self.selected_file:
+            self.query_one("#file_btn_bar").remove_class("hidden")
+            self.file_view_file_btn.label = f"View "
+            self.file_edit_file_btn.label = f"Edit "
+            self.file_del_file_btn.label = f"Del "
+            self.file_new_file_btn.label = f"New File"
+            self.file_set_prompt_btn.label = f"Set Prompt"
+        else:
+            self.query_one("#file_btn_bar").add_class("hidden")
 
     def create_new_file(self, old_file_name: str, new_file_name: str) -> None:
         dir_path = os.path.dirname(f"{old_file_name}")  # Extract directory of old file
         new_file_path = os.path.join(dir_path, new_file_name)
         self.wlog.info(
-            f"create_new_file(old_file_name={old_file_name},new_file_name={new_file_name}):Memory/{new_file_path}")
-        open("Memory/" + new_file_path, 'a').close()  # Create the new file
+            f"create_new_file(old_file_name={old_file_name},new_file_name={new_file_name}):{self.db.path}/{new_file_path}")
+        open(f"{self.db.path}/{new_file_path}", 'w').close()  # Create the new file
         # self.post_message(FileEditor.FileAction(FileActionCmd.VIEW, new_file_path))
 
     def create_new_dir(self, dir_path: str, dir_name: str) -> None:
-        new_dir_path = f"Memory/{dir_path}/{dir_name}"
+        new_dir_path = f"{self.db.path}/{dir_path}/{dir_name}"
+        self.wlog.info(f"Create a new directory {new_dir_path}")
         try:
             os.mkdir(new_dir_path)  # Create the new directory
         except FileExistsError:
@@ -91,6 +137,7 @@ class DirTree(DirectoryTree):
         path = path.replace('Memory/', '')
         self.selected_directory = path
         self.selected_file = None
+        self.update_buttons()
 
     async def do_file_menu_option(self, event: MouseDown, path: str, option: str):
         self.wlog.info(f"File Menu: {option} {path}")
@@ -117,6 +164,37 @@ class DirTree(DirectoryTree):
                 )
                 self.create_new_file(None, new_name)
 
+    @on(Button.Pressed)
+    async def on_button_pressed(self, event):
+        self.wlog.info(f"Got ButtonPressed({event.button})")
+        match event.button.id:
+            case "file_view_file_btn":
+                self.post_message(FileEditor.FileAction(FileActionCmd.VIEW, path))
+            case "file_edit_file_btn":
+                self.post_message(FileEditor.FileAction(FileActionCmd.EDIT, path))
+            case "file_del_file_btn":
+                self.post_message(self.DirectoryAction(DirectoryActionCmd.DELETE, path))
+            case "file_new_file_btn":
+                new_name = await self.app.push_screen_wait(
+                    InputDialog("New File Dialog", "Name of New file:",
+                                offset=(event.screen_x, event.screen_y)
+                                )
+                )
+                self.create_new_file(None, new_name)
+            case "file_set_prompt_btn":
+                self.wlog.info(f"Set Prompt clicked!!!!!")
+
+            case "dir_new_file_btn":
+                self.wlog.info(f"clicked button {event.button.id}")
+            case "dir_del_dir_btn":
+                self.wlog.info(f"clicked button {event.button.id}")
+            case "dir_new_dir_btn":
+                self.wlog.info(f"clicked button {event.button.id}")
+            case "dir_del_back_btn":
+                self.wlog.info(f"clicked button {event.button.id}")
+
+
+
     def find_files(self, directory, pattern):
         for root, dirs, files in os.walk(directory):
             for basename in files:
@@ -134,7 +212,10 @@ class DirTree(DirectoryTree):
                             offset=(event.screen_x, event.screen_y)
                             )
             )
-            self.create_new_file(f"{self.selected_directory}/t.tmp", new_file_name)
+            self.create_new_file(
+                f"{self.selected_directory}/t.tmp",
+                f"{new_file_name}"
+            )
             return
 
         if 'Delete Directory' == str(option):
@@ -346,6 +427,11 @@ class MemoryTree(Static):
 
     def find_child_node(self, parent: TreeNode, child_names: [str]) -> TreeNode[Any] | None:
         self.wlog.info(f"Looking for {child_names}")
+
+        # if it is a child of the root node...
+        if not child_names:
+            return parent
+
         for child in parent.children:
             self.wlog.info(f"Looking at {child.label}")
             if str(child.label) == child_names[0]:

@@ -10,7 +10,7 @@ from ai import AI
 from dialogs.popup_menu import PopUpMenu
 from dialogs.yes_no_dialog import YesNoDialog
 from logger import Logger
-from processes import ProcessList, ProcessList_save
+from processes import Processes
 from step import Step
 from step_editor import StepEditor
 
@@ -20,6 +20,7 @@ from dialogs.inputdialog import InputDialog
 class ProcessEditor(Static):
     wlog = Logger(namespace="ProcessEditor", debug=False)
     plog = Logger(namespace="Process", debug=True)
+    procs: Processes = Processes("Processes")
     selected_node: TreeNode | None = None
     selected_process: str = ''
     selected_step: str = ''
@@ -29,11 +30,13 @@ class ProcessEditor(Static):
         self.process_tree: Tree[dict] = Tree("Processes")
         self.process_tree.root.expand()
         self.process_tree.show_root = False
-        for proc_name in ProcessList.keys():
+        for proc_name in self.procs.glob_files("*"):
             procedure = self.process_tree.root.add(proc_name)
-            for step in ProcessList[proc_name]:
+            step_names = self.procs.glob_files(f"{proc_name}/*")
+            for step_name in step_names:
+                step = self.procs[step_name]
                 procedure.add_leaf(step.name, data=step)
-        self.border_title = 'Process List'
+        self.border_title = 'Process / Step'
         yield self.process_tree
 
     def node_id(self, proc: str | None = None, step: str | None = None) -> str:
@@ -48,122 +51,120 @@ class ProcessEditor(Static):
         e.prevent_default()
         self.wlog.info(f"Selected: {e.node.label} with {len(e.node.children)} children")
         self.selected_node = e.node
-        if len(e.node.children) == 0:
-            # Process a Step
+        if e.node.allow_expand:  # Process
+            self.wlog.info(f"Selected Process: {e.node.label}")
+            self.selected_process = str(e.node.label)
+            self.selected_step = ""
+        else:  # Step
             if e.node.data:
-                self.wlog.info(f"Selected: {e.node.data.prompt_name}|{e.node.parent.label}|{e.node.label}")
+                self.wlog.info(f"Selected Step: {e.node.parent.label}/{e.node.label}")
                 self.selected_process = str(e.node.parent.label)
                 self.selected_step = str(e.node.label)
                 self.post_message(StepEditor.StepAction("Select", e.node.parent.label, e.node.label))
-        else:
-            self.selected_process = str(e.node.label)
-            self.selected_step = ""
 
-    def get_step_no(self, process_name: str, step_name: str) -> int:
-        pos: int = 0
-        for s in ProcessList[process_name]:
-            if s.name == step_name:
-                break
-            pos += 1
-        return pos
+    async def do_step_popup_menu(self, event: MouseDown) -> None:
+
+        screen_pos = (event.screen_x, event.screen_y)
+        step_cmd = await self.app.push_screen_wait(
+            PopUpMenu(
+                f"Step PopUp: {self.selected_step}",
+                ['New Step', f'Delete Step "{self.selected_step}"'],
+                offset=screen_pos
+            )
+        )
+        self.wlog.info(f"Got '{step_cmd}' from Step PopUp")
+        keywords = str(step_cmd).split(' ')
+        self.wlog.info(f"keywords {keywords}")
+        match keywords[0]:
+            case "New":
+                new_name = await self.app.push_screen_wait(
+                    InputDialog("New Step Dialog", "Name of New Step:", offset=screen_pos)
+                )
+                if new_name:
+                    step = Step(new_name, ai=AI())
+                    self.procs[new_name] = step
+                    self.selected_node.add_leaf(new_name, data=step)
+
+            case "Delete":
+                self.wlog.info(f"it is a Delete")
+                confirmation: bool = await self.app.push_screen_wait(
+                    YesNoDialog(f"Delete?",
+                                f"Delete Step '{self.selected_step}'",
+                                offset=screen_pos)
+                )
+                if not confirmation:
+                    self.wlog.info(f"Delete not confirmed")
+                    return
+
+                del self.procs[f"{self.selected_process}/{self.selected_step}"]
+
+    async def do_process_popup_menu(self, event: MouseDown) -> None:
+        screen_pos = (event.screen_x, event.screen_y)
+        menu_cmd = await self.app.push_screen_wait(
+            PopUpMenu(f"Process Popup : {self.selected_process}",
+                      [f'Create Step in "{self.selected_process}"',
+                       'New Process',
+                       f'Delete Process "{self.selected_process}"',
+                       f'Execute Process "{self.selected_process}"'
+                       ],
+                      offset=screen_pos)
+        )
+        self.wlog.info(f"Process PopUp: {self.selected_process},  Step: {self.selected_step}>> {str(menu_cmd)}")
+        keywords = str(menu_cmd).split(' ')
+        match keywords[0]:
+            case "New":
+                self.wlog.info(f"PopUp New Process: {self.selected_process},  Step: {self.selected_step}")
+                new_name = await self.app.push_screen_wait(
+                    InputDialog("New Process Dialog", "Name of New process:", offset=screen_pos)
+                )
+                self.procs.new_process(new_name)
+                self.process_tree.root.add(new_name)
+                return
+
+            case "Delete":
+                self.wlog.info(f"it is a Delete")
+                confirmation: bool = await self.app.push_screen_wait(
+                    YesNoDialog(f"Delete?",
+                                f"Delete Process '{self.selected_process}'",
+                                offset=screen_pos)
+                )
+                if not confirmation:
+                    self.wlog.info(f"Delete not confirmed")
+                    return
+
+                if self.selected_process in self.procs.glob_files('*'):
+                    del self.procs[self.selected_process]
+                    self.selected_node = None
+                    self.selected_process = ""
+                    self.selected_step = ""
+                return
+
+            case "Execute":
+                self.execute_process(self.selected_process)
+                return
+
+            case "Create":
+                # self.execute_process(self.selected_process)
+                step_name = await self.app.push_screen_wait(
+                    InputDialog("New Step Dialog", "Name of New step:", offset=screen_pos)
+                )
+                new_step = Step(name=step_name, ai=AI())
+                self.procs[self.selected_process] = new_step
+                self.selected_node.add_leaf(step_name, data=new_step)
+                return
+
+            case "_":
+                self.wlog.error(f"Invalid menu return: {str(menu_cmd)}... \nExpected one of [Create, New, Delete, Execute]")
+                return
 
     @work
     async def do_popup_menu(self, event: MouseDown) -> None:
-        screen_pos = (event.screen_x, event.screen_y)
         if self.selected_step:
-            step_cmd = await self.app.push_screen_wait(
-                PopUpMenu(
-                    f"Step PopUp: {self.selected_step}",
-                    ['New Step', f'New Step After "{self.selected_step}"', f'Delete Step "{self.selected_step}"'],
-                    offset=screen_pos
-                )
-            )
-            self.wlog.info(f"Got '{step_cmd}' from Step PopUp")
-            keywords = str(step_cmd).split(' ')
-            self.wlog.info(f"keywords {keywords}")
-            match keywords[0]:
-                case "New":
-                    pos = 0
-                    if len(keywords) > 2 and keywords[2] == "After":
-                        pos = self.get_step_no(self.selected_process, self.selected_step) + 1
-                    ProcessList[self.selected_process].insert(pos, Step('New Step', ai=AI()))
-                    ProcessList_save(ProcessList)
-                    father = self.selected_node.parent
-                    father.remove_children()
-                    for s in ProcessList[self.selected_process]:
-                        father.add_leaf(s.name, s)
-                    return
-
-                case "Delete":
-                    self.wlog.info(f"it is a Delete")
-                    confirmation: bool = await self.app.push_screen_wait(
-                        YesNoDialog(f"Delete?",
-                                    f"Delete Step '{self.selected_step}'",
-                                    offset=screen_pos)
-                    )
-                    if not confirmation:
-                        self.wlog.info(f"Delete not confirmed")
-                        return
-
-                    pos = self.get_step_no(self.selected_process, self.selected_step)
-                    ProcessList[self.selected_process].pop(pos)
-                    ProcessList_save(ProcessList)
-                    self.selected_node.remove()
-                    self.selected_step = ''
-                    self.selected_node = None
-                    return
-
+            await self.do_step_popup_menu(event)
+            return
         elif self.selected_process:
-            menu_cmd = await self.app.push_screen_wait(
-                PopUpMenu(f"Process Popup : {self.selected_process}",
-                          ['New Process',
-                           f'Delete Process "{self.selected_process}"',
-                           f'Execute Process "{self.selected_process}"'
-                           ],
-                          offset=screen_pos)
-            )
-            self.wlog.info(f"Process PopUp: {self.selected_process},  Step: {self.selected_step}>> {str(menu_cmd)}")
-            keywords = str(menu_cmd).split(' ')
-            match keywords[0]:
-                case "New":
-                    self.wlog.info(f"PopUp New Process: {self.selected_process},  Step: {self.selected_step}")
-                    new_name = await self.app.push_screen_wait(
-                        InputDialog("New Process Dialog", "Name of New process:", offset=screen_pos)
-                    )
-                    new_step = Step("Dummy Step", ai=AI())
-                    ProcessList[new_name] = [new_step]
-                    procedure = self.process_tree.root.add(new_name)
-                    procedure.add_leaf(new_step.name, data=new_step)
-                    ProcessList_save(ProcessList)
-                    return
-
-                case "Delete":
-                    self.wlog.info(f"it is a Delete")
-                    confirmation: bool = await self.app.push_screen_wait(
-                        YesNoDialog(f"Delete?",
-                                    f"Delete Process '{self.selected_process}'",
-                                    offset=screen_pos)
-                    )
-                    if not confirmation:
-                        self.wlog.info(f"Delete not confirmed")
-                        return
-
-                    if self.selected_process in ProcessList.keys():
-                        del ProcessList[self.selected_process]
-                        self.selected_node.remove()
-                        self.selected_node = None
-                        self.selected_process = ""
-                        self.selected_step = ""
-                        ProcessList_save(ProcessList)
-                    return
-
-                case "Execute":
-                    self.execute_process(self.selected_process)
-                    return
-
-                case "_":
-                    self.wlog.error(f"Invalid menu return: {str(menu_cmd)}... \nExpected one of [New, Delete, Execute]")
-                    return
+            await self.do_process_popup_menu(event)
+            return
 
     @work
     async def execute_process(self, process_name: str):
@@ -172,7 +173,9 @@ class ProcessEditor(Static):
         step_no = 1
         start_time = time.time()
         e_stats = {}
-        for step in ProcessList[self.selected_process]:
+        step_names = self.procs.glob_files(f"{self.selected_process}/*")
+        for step_name in step_names:
+            step = self.procs[step_name]
             self.plog.info(f"Execute {process_name}({step_no}): {step.name} ")
             await step.run(self.selected_process)
             for k, v in step.ai.e_stats.items():

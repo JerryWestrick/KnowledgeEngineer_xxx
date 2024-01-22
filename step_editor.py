@@ -7,12 +7,13 @@ from textual.widgets import Static, Label, Select, Button, Input
 from OpenAI_API_Costs import OpenAI_API_Costs
 from input_copypaste import InputCP
 from logger import Logger
-from processes import ProcessList, ProcessList_save
+from processes import Processes
 from step import Step
 
 
 class StepEditor(Static):
     wlog: Logger = Logger(namespace="StepEditor", debug=False)
+    proc: Processes = Processes('Processes')
     pname: str = ''
     step: Step | None = None
     changes_are_internal: bool = False
@@ -87,10 +88,7 @@ class StepEditor(Static):
 
         self.pname: str = sa.pname
         self.border_title = f"Step Editor: {self.pname}/{sa.sname}"
-        for s in ProcessList[sa.pname]:
-            if s.name == sa.sname:
-                self.step = s
-                break
+        self.step = self.proc[f"{self.pname}/{sa.sname}"]
 
         for aWidget in self.fields:
             match aWidget.__class__.__name__:
@@ -148,10 +146,12 @@ class StepEditor(Static):
         return
 
     @on(Button.Pressed, "#step_save_btn")
-    def save_process_list(self):
+    def save_step(self):
         self.step_save_btn.add_class("hidden")
         self.step_exec_btn.remove_class("hidden")
-        ProcessList_save(ProcessList)
+        if self.step:
+            self.wlog.info(f"Save Step: {self.step.name}... ")
+            self.proc[self.pname] = self.step
 
     @on(Button.Pressed, "#step_exec_btn")
     def exec_step(self):

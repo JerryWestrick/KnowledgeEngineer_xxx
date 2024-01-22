@@ -1,38 +1,46 @@
-Server Requirements
+# Server Requirements for Snake Online Game
 
-1. Architecture
+## Detailed Description of Each Requirement
 
-The server side of the multi-user 'Snake' online game will be implemented in Python 3 using Async IO and aiohttp to serve the SnakeClient.html file and connect via websockets.
+### 1. Python 3 with Async IO
+- The server must be implemented using Python 3.
+- It should utilize asynchronous I/O operations to handle multiple client connections efficiently.
 
-2. Game Board
+### 2. aiohttp for Serving HTML and WebSockets
+- The server should use the aiohttp library to serve the SnakeClient.html file.
+- It must handle WebSocket connections for real-time communication with clients.
 
-The server will maintain a 100x100 2D character representation of the playing ground called the game_board. The game_board will be updated with the values of snakes and foods. Collisions can be checked by examining the character value in the game_board at a specific position.
+### 3. Game Board Management
+- The server must maintain a 100x100 2D character array representing the game board.
+- It should update the game board with the positions of snakes and food items.
+- Collision detection will be based on the character values in the game board.
 
-3. Ticks Logic
+### 4. Game Ticks
+- The server should implement game logic in ticks, with 5 ticks per second.
+- Each tick involves moving snakes, handling collisions, and updating scores.
 
-The game will be implemented using ticks, with 5 ticks per second. Each tick will perform the following actions:
+### 5. Client Management
+- The server must manage client connections, including joining, disconnecting, and resetting clients.
+- It should assign characters to clients and handle the allocation and deallocation of these characters.
 
-- Move each snake whose direction is not 'Stop'. If the new head position is out of bounds or collides with another snake, the snake dies.
-- If the new head position contains a food, the snake eats it, increases its score, and a new food is randomly placed on the game_board.
-- If the new head position is empty, the snake moves to the new position and its tail is updated.
-- The updated game status is sent to all connected clients.
+### 6. Score and Death Handling
+- The server must update client scores based on game events.
+- It should send appropriate messages to clients when their snake dies and reset their game state.
 
-4. Snake Dies
+### 7. Food Item Management
+- The server should handle the placement and consumption of food items on the game board.
+- It must ensure that new food items are placed in empty spaces.
 
-When a snake dies, the server sends a SnakeDied message to the client, erases the client's snake from the game_board, and performs a reset for the client.
+### 8. HTTP Server at Startup
+- At startup, the server must start an HTTP server to serve the SnakeClient.html file to clients.
 
-5. Reset A Client
+### 9. Real-time Communication
+- The server must send the updated GameStatus to all connected clients after each tick.
 
-When resetting a client, a new snake head is randomly positioned, the client's snake is updated, the client's score is set to zero, and the client's direction is set to 'Stop'.
+### 10. Error Handling
+- The server should handle errors gracefully, including full client lists and unexpected disconnections.
 
-6. Joining
+### 11. Logging
+- The server must implement logging to track game events and client activities.
 
-When a client sends a 'Joining' message, the server assigns a character from the free_snake_chars list to the client, sets the client's username, and performs a reset for the client. If there are no available characters, the server closes the websocket.
-
-7. Websocket Disconnect
-
-When a websocket disconnects, the server returns the client's character to the free_snake_chars list, erases the client's snake from the game_board, and removes the client from the game_status.
-
-8. Startup
-
-At startup, the server starts an HTTP server to serve the SnakeClient.html file.
+These requirements ensure that the server can manage the game logic, client connections, and real-time updates efficiently and reliably.

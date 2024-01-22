@@ -23,7 +23,7 @@ class FileActionCmd(Enum):
 
 class FileEditor(Static):
     db: DB = DB("Memory")
-    wlog: Logger = Logger(namespace="FileEditor", debug=True)
+    wlog: Logger = Logger(namespace="FileEditor", debug=False)
 
     class FileAction(Message):
         def __init__(self, cmd: FileActionCmd, name: str):

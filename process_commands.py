@@ -9,7 +9,7 @@ from textual.screen import Screen
 
 from db import DB
 from logger import Logger
-from processes import ProcessList
+from processes import Processes
 
 
 class ProcessCommand(Message):
@@ -30,6 +30,7 @@ class ProcessCommands(Provider):
        Or to edit a file...
     """
     db: DB = DB('Memory')
+    proc: Processes("Processes")
 
     wlog: Logger = Logger(namespace="ProcessCommands", debug=False)
 
@@ -42,18 +43,20 @@ class ProcessCommands(Provider):
 
         self.step_list = ["New Process First"]
 
+        # All Debug On/Off
         for log in Logger.get_instances():
             debug_value = "Off" if log.debug else "On"
             self.step_list.append(f"Set Debug {log.namespace}/{debug_value}")
 
-        for p, v in ProcessList.items():
+        # All Processes
+        for p in self.proc.glob_files('*'):
             self.step_list.extend([f"Select Process {p}",
                                    f"Execute Process {p}",
                                    f"Delete Process {p}",
                                    f"New Step {p}/First"
                                    ])
-            for s in v:
-                step_name = f"{p}/{s.name}"
+            for s in self.proc.glob_files(f"{p}/*"):
+                step_name = s.replace(".json", "")
                 self.step_list.extend([f"Select Step {step_name}",
                                        f"Execute Step {step_name}",
                                        f"Delete Step {step_name}",
@@ -69,10 +72,10 @@ class ProcessCommands(Provider):
             sfn = fn[9:]
             self.step_list.extend([f"Edit File {sfn}", f"View File {sfn}", f"Delete File {sfn}"])
 
-        cr = "\n"
-        self.wlog.info(f"StepList: ({len(self.step_list)})")
-        for step in self.step_list:
-            self.wlog.info(f"  {step}")
+        # cr = "\n"
+        # self.wlog.info(f"StepList: ({len(self.step_list)})")
+        # for step in self.step_list:
+        #     self.wlog.info(f"  {step}")
 
     async def search(self, query: str) -> Hits:
         matcher = self.matcher(query)
