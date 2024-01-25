@@ -84,3 +84,13 @@ You can see how this form of Knowledge Management makes a lot more sense, and co
 
 Jerry The Dinosaur
 
+
+# P.S.
+## The project is managed with JetBrains YouTrack, and Github
+### YouTrack Configuration
+- Place Configuration information here...
+### GitHub Configuration
+- Place Configuration information here...
+### Pycharm Integration
+- Place Configuration information here...
+
