@@ -1,4 +1,4 @@
-# Snake Game Implementation
+# Process Game Implementation
 
 import random
 import curses
@@ -240,7 +240,7 @@ def restart_game(win):
 
 
 def main():
-    """The main function to start the Snake game."""
+    """The main function to start the Process game."""
     screen = initialize_screen()
     win = create_game_window(screen)
     game_loop(win)

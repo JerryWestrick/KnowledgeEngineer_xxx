@@ -4,7 +4,7 @@ Log of Step: 3- Implement Snake Program : Snake3/Prompts/3- Implement Snake Prog
  - The routines for the Snake game have been coded into the file 'Snake3/Code/Snake.py' with placeholders for the actual implementation. Each function includes a docstring explaining its parameters and purpose. Here is the content of the file:
 
 ```python
-# Snake Game Implementation
+# Process Game Implementation
 
 # Import necessary libraries
 import random
@@ -22,7 +22,7 @@ def game_loop():
     """Run the main game loop."""
     pass  # Placeholder for game loop code
 
-# Snake movement
+# Process movement
 
 def move_snake(direction):
     """Move the snake in the specified direction.
@@ -37,7 +37,7 @@ def generate_food():
     """Randomly place a food item on the grid."""
     pass  # Placeholder for food generation code
 
-# Snake growth
+# Process growth
 
 def grow_snake():
     """Increase the length of the snake after consuming food."""

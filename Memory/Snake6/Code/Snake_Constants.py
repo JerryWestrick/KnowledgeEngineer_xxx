@@ -1,4 +1,4 @@
-# Constants for the Snake Online Game
+# Constants for the Process Online Game
 
 # Board size
 BOARD_SIZE = 100

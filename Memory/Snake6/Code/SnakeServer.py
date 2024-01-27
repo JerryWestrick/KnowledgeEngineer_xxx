@@ -1,4 +1,4 @@
-# Server Implementation for Snake Online Game
+# Server Implementation for Process Online Game
 
 import asyncio
 from aiohttp import web
@@ -16,7 +16,7 @@ GameStatus = {
 }
 
 async def start_server(host: str, port: int):
-    """Start the Snake game server.
+    """Start the Process game server.
 
     Parameters:
         host (str): The hostname to bind the server to.
@@ -33,7 +33,7 @@ async def start_server(host: str, port: int):
     site = web.TCPSite(runner, host, port)
     await site.start()
     # Keep the server running
-    print(f'Snake game server started on {host}:{port}')
+    print(f'Process game server started on {host}:{port}')
     try:
         while True:
             await asyncio.sleep(3600)  # Sleep for 1 hour
@@ -80,7 +80,7 @@ async def websocket_handler(request):
     return ws
 
 def initialize_game_board() -> List[List[str]]:
-    """Initialize the game board for the Snake game.
+    """Initialize the game board for the Process game.
 
     Returns:
         List[List[str]]: The initialized game board.
@@ -138,7 +138,7 @@ async def game_tick(game_state: dict):
                 client_info['snake'].pop()
                 client_info['score'] += 1
             else:
-                # Snake dies
+                # Process dies
                 await handle_snake_death(client_ws, game_state)
 
     # Update the game board
@@ -168,7 +168,7 @@ async def handle_client_joining(websocket, username: str, game_state: dict):
     game_state['clients'][websocket] = {
         'username': username,
         'char': client_char,
-        'snake': [],  # Snake will be initialized in reset_client
+        'snake': [],  # Process will be initialized in reset_client
         'score': 0,
         'direction': 'Stop'
     }

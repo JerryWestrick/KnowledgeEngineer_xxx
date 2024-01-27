@@ -1,4 +1,4 @@
-# Snake Game Code
+# Process Game Code
 
 # Import necessary libraries
 import random
@@ -12,7 +12,7 @@ w = curses.newwin(sh, sw, 0, 0)
 w.keypad(1)
 w.timeout(100)
 
-# Snake initial position
+# Process initial position
 snk_x = sw//4
 snk_y = sh//2
 snake = [
@@ -21,7 +21,7 @@ snake = [
     [snk_y, snk_x-2]
 ]
 
-# Snake initial food position
+# Process initial food position
 food = [sh//2, sw//2]
 w.addch(int(food[0]), int(food[1]), curses.ACS_PI)
 

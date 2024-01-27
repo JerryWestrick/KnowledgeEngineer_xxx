@@ -1,4 +1,4 @@
-# Snake Game Implementation
+# Process Game Implementation
 
 # Import necessary libraries
 import random
@@ -87,7 +87,7 @@ def game_loop(win, snake, snake_dir, food, score):
         speed = increase_difficulty(score)
         curses.napms(speed)
 
-# Snake movement
+# Process movement
 
 def move_snake(snake, direction):
     """Move the snake in the specified direction.
@@ -124,7 +124,7 @@ def generate_food(win, snake):
         if food not in snake:
             return food
 
-# Snake growth
+# Process growth
 
 def grow_snake(snake):
     """Increase the length of the snake after consuming food.

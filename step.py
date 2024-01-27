@@ -1,7 +1,8 @@
 # The name of the step is the key to the dictionary
-
+import os
 import time
 
+import jsonpickle
 
 from ai import AI
 from db import DB
@@ -74,6 +75,25 @@ class Step:
             ai=AI.from_json(json_obj['ai'])
         )
         return step
+
+
+    @classmethod
+    def from_file(cls, pname: str, sname: str) -> 'Step':
+        k: str = f"{sname}"
+        full_path = f"Memory/{pname}/Process/{k}"
+        if not os.path.isfile(full_path):
+            wlog = Logger("Step Class")
+            wlog.error(f"Invalid Memory Item.  \nPath not found: {full_path}")
+            raise KeyError(full_path)
+        with open(full_path, "r", encoding="utf-8") as f:
+            content = f.read()
+        step = jsonpickle.decode(content)
+        # self.wlog.info(f"Read--> Processes/{key}")
+        return step
+
+    @classmethod
+    def from_kestep_contents(cls, content):
+        step = jsonpickle.decode(content)
 
     def update_gui(self):
         # Send Update to the GUI
@@ -150,8 +170,9 @@ class Step:
                       f"Total: [{wcolor}]{total_tokens:,}[/] ("
                       f"Prompt: {int(self.ai.e_stats['prompt_tokens']):,}, "
                       f"Completion: {int(self.ai.e_stats['completion_tokens']):,})"
-                      f"\n{head}"
+                      f"\n{self.log.ts()}{head}"
                       f"│ Costs:: Total: [green]${self.ai.e_stats['s_total']:.2f}[/] "
                       f"(Prompt: ${self.ai.e_stats['sp_cost']:.4f}, "
                       f"Completion: ${self.ai.e_stats['sc_cost']:.4f})"
-                      f"\n{head}{bottom_left}{'─' * 80}")
+                      f"\n{self.log.ts()}{head}{bottom_left}{'─' * 80}")
+

@@ -34,7 +34,7 @@ class Processes:
         return
 
     def read(self, key: str):
-        k: str = f"{key}.json"
+        k: str = f"{key}.kestep"
         full_path = self.path / k
         if not full_path.is_file():
             self.wlog.error(f"Invalid Memory Item.  \nPath not found: {full_path}")
@@ -55,7 +55,7 @@ class Processes:
         l = len(str(self.path))
         files = []
         for x in glob.glob(str(s), recursive=True):
-            files.append(x[l+1:].replace('.json', ''))
+            files.append(x[l+1:].replace('.kestep', ''))
         files.sort()
         return files
 
@@ -74,7 +74,7 @@ class Processes:
     def __setitem__(self, proc_name: str, step: Step) -> Step:
         self.wlog.info(f"Save Step: {self.path}/{proc_name}/{step.name}, {step.ai.max_tokens}")
         if isinstance(step, Step):
-            full_path = self.path / f"{proc_name}/{step.name}.json"
+            full_path = self.path / f"{proc_name}/{step.name}.kestep"
         else:
             full_path = self.path / f"{proc_name}"
 
