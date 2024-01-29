@@ -3,6 +3,8 @@ import time
 from db import DB
 from logger import Logger
 from step import Step
+import asyncio
+import shutil
 
 log = Logger(namespace="ke", debug=True)
 memory = DB('Memory')
@@ -38,44 +40,59 @@ async def execute_process(process_name: str):
                    f"\n{log.ts()}{head}"
                    f"Costs:: Total: [green]${e_stats['s_total']:.2f}[/] "
                    f"(Prompt: ${e_stats['sp_cost']:.4f}, "
-                   f"Completion: ${e_stats['sc_cost']:.4f})"
-                   )
+                   f"Completion: ${e_stats['sc_cost']:.4f})")
+
+
+def create_new_proc(proc_name: str) -> None:
+    log.info(f"In Create Proc {proc_name}")
+    # Copy ExampleProcess directory to Memory/{proc_name}
+    shutil.copytree('./ExampleProcess', f'./Memory/{proc_name}')
 
 
 async def main(args):
+
+    # Now you can access the arguments as follows
+    if not args.proc and not args.create:
+        log.warn("No Option chosen.")
+        parser.print_help()
+        exit(1)
+
     log_file = None
     if args.file is not None:
         log.log_file(args.file)
         log.info(f"Logging to: {args.file}")
 
-    if args.step:
-        step = Step.from_file(pname=args.proc, sname=args.step)
-        await step.run(args.proc)
+    if args.create:
+        log.info(f"Create new process {args.create}")
+        full_proc_names = memory.glob_files(args.create)
+        if args.create in full_proc_names:
+            log.error(f"Proc {args.create} already exists")
+        else:
+            create_new_proc(args.create)
+        return
 
-    elif args.proc:
-        await execute_process(args.proc)
+    if args.proc:
+        if args.step:
+            step = Step.from_file(pname=args.proc, sname=args.step)
+            await step.run(args.proc)
+        else:
+            await execute_process(args.proc)
 
     if log_file is not None:
         # log_file.close()
         log.info(f"Logging to: {log_file.name} complete")
 
+
 if __name__ == "__main__":
     # Create the parser
     parser = argparse.ArgumentParser(description="Knowledge Engineering: AI Prompt Memory Engineering Tool")
     # Add the arguments
-    parser.add_argument("-proc", metavar="proc-name", type=str, help="execute the given process name")
-    parser.add_argument("-step", metavar="step-name", type=str, help="execute the given step in the proc")
+    parser.add_argument("-proc", metavar="proc_name", type=str, help="execute the given process name")
+    parser.add_argument("-step", metavar="step_name", type=str, help="execute the given step in the proc")
     parser.add_argument("-file", metavar="file_name", type=str, help="Log to the specified file")
+    parser.add_argument("-create", metavar="create", type=str, help="Create a process with given name")
 
     # Parse the arguments
     args: argparse.Namespace = parser.parse_args()
-
-    # Now you can access the arguments as follows
-    if not args.proc:
-        log.warn("No Option chosen.")
-        parser.print_help()
-        exit(1)
-
-    import asyncio
 
     asyncio.run(main(args))

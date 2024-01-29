@@ -16,8 +16,8 @@ async def succeed(d: dict):
 
 
 class AI:
-    log = Logger(namespace='AI')
-    log_a = Logger(namespace="Assistant")
+    log = Logger(namespace='AI', debug=True)
+    log_a = Logger(namespace="Assistant", debug=True)
     memory = DB('Memory')
     # client = OpenAI()
     # client.api_key = os.getenv('OPENAI_API_KEY')
@@ -77,10 +77,10 @@ class AI:
 
         # GptLogger.log('SYSTEM', f"Using model {self.model} in mode {self.mode}")
 
-    async def read_file(self, name: str):
+    async def read_file(self, name: str, process_name: str):
 
         try:
-            file_msgs = self.memory[name]
+            file_msgs = self.memory.read_msgs(name, process_name=process_name)
 
         except Exception as err:
             self.log.error(f"Error while reading file for AI... {err}")
@@ -95,19 +95,27 @@ class AI:
         result = await succeed({'role': 'function', 'name': 'read_file', 'content': file_contents})
         return result
 
-    async def write_file(self, name: str, contents: str):
+    async def write_file(self, name: str, contents: str, process_name: str):
+        if process_name != '':
+            full_name = f"{process_name}/{name}"
+        else:
+            full_name = name
         try:
-            self.memory[name] = contents
+            self.memory[full_name] = contents
         except Exception as err:
             self.log.error(f"Error while writing file for AI... {err}")
             raise
         result = await succeed({'role': 'function', 'name': 'write_file', 'content': 'Done.'})
         return result
 
-    async def replace(self, name: str, old_code: str, new_code: str) -> dict:
+    async def replace(self, name: str, old_code: str, new_code: str, process_name: str) -> dict:
+        if process_name != '':
+            full_name = f"{process_name}/{name}"
+        else:
+            full_name = name
         try:
             # Reading the entire file content
-            file_contents = self.memory.read(name)
+            file_contents = self.memory.read(full_name)
 
             # Replacing old code with new code
             updated_contents = file_contents.replace(old_code, new_code)
@@ -192,7 +200,7 @@ class AI:
         "replace": replace,
     }
 
-    async def generate(self, step, user_messages: list[dict[str, str]]):
+    async def generate(self, step, user_messages: list[dict[str, str]], process_name: str):
 
         self.answer = f'Log of Step: {step.name} : {step.prompt_name}\n'
         pricing = OpenAI_API_Costs[self.model]
@@ -242,7 +250,7 @@ class AI:
                 self.messages.append(response_message)
                 self.log.ai_msg(step, response_message)  # Display with last message
                 if ai_response.choices[0].finish_reason == 'function_call':
-                    new_msg = await self.available_functions[function_name](self, **function_args)
+                    new_msg = await self.available_functions[function_name](self, **function_args, process_name=process_name)
                     self.messages.append(new_msg)
                     self.log.ret_msg(step, new_msg)
                     repeat = True

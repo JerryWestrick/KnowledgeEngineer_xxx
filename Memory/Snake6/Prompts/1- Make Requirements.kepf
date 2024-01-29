@@ -1,0 +1,13 @@
+.include Requirements/Actor.kepf
+.user
+The file 'Requirements/ApplicationDescription.md' has a description of the application you are working on.
+Read the file 'Requirements/ApplicationDescription.md'
+Write Server Requirements with Detailed Description of each requirement to the file 'Planning/Server_Requirements.md'
+.exec
+Write Client Requirements with Detailed Description of each requirement to the file 'Planning/Client_Requirements.md'.
+.exec
+List all messages with their senders, receivers, a short description, and an example message to the file 'Planning/Messages.md'.
+.exec
+Create python code Snake_Constants.py containing all constants described.
+Check the python code for correctness.
+Write the file 'Code/Snake_Constants.py'.

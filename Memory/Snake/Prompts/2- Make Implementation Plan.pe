@@ -1,7 +1,0 @@
-.include Snake/Requirements/Actor.pe
-.user
-Read the requirements from file 'Snake/Planning/Requirements.md'.
-Create Implementation Plan in file 'Snake/Planning/Implementation_Plan.md'
-.exec
-Study the implementation plan, check that all requirements are included, and that all routines are described, and that all functions are implemented
-Implement any changes by re-writing the file 'Snake/Planning/Implementation_Plan.md'

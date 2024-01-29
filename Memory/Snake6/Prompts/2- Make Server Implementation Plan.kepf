@@ -1,0 +1,12 @@
+.include Requirements/Actor.kepf
+.user
+Read the application description file: 'Requirements/ApplicationDescription.md'.
+Read the requirements for the server from file 'Planning/Server_Requirements.md'.
+Read the constants for the server from the file 'Code/Snake_Constants.py'.
+Read the Network Protocol from the file 'Planning/Messages.md'.
+Create Server_Implementation_Plan.md mapping each requirement in Server_Requirements.md to functions describing the interface and the logic of each function.
+Include extensive documentation for each function.
+Write the plan to the file 'Planning/Server_Implementation_Plan.md'
+.exec
+Study the implementation plan, check that all requirements are included, and that all routines are described.
+Implement any changes re-writting the file named Planning/Server_implementation_Plan.md

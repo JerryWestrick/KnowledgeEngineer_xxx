@@ -39,8 +39,19 @@ class DB:
             shutil.rmtree(f'{full_path}')
         return
 
-    def read(self, key: str):
-        full_path = self.path / key
+    def read_msgs(self, key: str, process_name: str = ''):
+        content = self.read(key, process_name)
+        lines = content.splitlines()
+        msgs = self.get_messages(key, lines, process_name=process_name)
+        return msgs
+
+
+    def read(self, key: str, process_name: str = ''):
+
+        if process_name:
+            full_path = self.path / process_name / key
+        else:
+            full_path = self.path / key
         if not full_path.is_file():
             self.log.error(f"Invalid Memory Item.  \nPath not found: {full_path}")
             raise KeyError(key)
@@ -50,13 +61,24 @@ class DB:
             content = f.read()
         return content
 
+    # def read(self, key: str):
+    #     full_path = self.path / key
+    #     if not full_path.is_file():
+    #         self.log.error(f"Invalid Memory Item.  \nPath not found: {full_path}")
+    #         raise KeyError(key)
+    #     with full_path.open("r", encoding="utf-8") as f:
+    #         # read the file and return the contents
+    #         self.log.info(f"Reading>>{key}")
+    #         content = f.read()
+    #     return content
+
     def __getitem__(self, key: str) -> [dict[str, str]]:
         """Return the contents of the file with the given key."""
         lines = self.read(key).splitlines()
         msgs = self.get_messages(key, lines)
         return msgs
 
-    def get_messages(self, name: str, macro_source: [str]) -> [dict[str, str]]:
+    def get_messages(self, name: str, macro_source: [str], process_name: str = '') -> [dict[str, str]]:
         """ Compile the code in source into a list of statements
             Execute the statements to return a list of messages"""
         source = []
@@ -64,7 +86,7 @@ class DB:
             source.append(self.replace_macros(line))
         code = self.compiler.compile(source)
         try:
-            msgs = self.compiler.execute(code)
+            msgs = self.compiler.execute(code, process_name=process_name)
         except Exception as err:
             tb_str = traceback.format_exc()
             self.log.error(f"Error {tb_str}")

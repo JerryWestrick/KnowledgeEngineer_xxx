@@ -1,8 +1,0 @@
-.include Snake3/Requirements/Actor.pe
-.user
-Describe the "Snake" game. List the games rules. And list the user interface/interactions.
-Use "🍎" as food character, and "🔵" as snake character.
-Write the game description to 'Snake3/Planning/Requirements.md'
-.exec
-Read 'Snake3/Planning/Requirements.md' Write an new version of the file 'Snake3/Planning/Requirements.md' including anything forgotten.
-

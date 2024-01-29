@@ -111,10 +111,11 @@ class Step:
         head_len = 12
         head = ' ' * head_len
         self.memory.macro = self.macros  # Use these values for macro substitution
+        prompt_name = f"{self.pname}/{self.prompt_name}"
         try:
-            messages = self.memory[self.prompt_name]
+            messages = self.memory.read_msgs(self.prompt_name, process_name=self.pname)
         except Exception as err:
-            self.log.error(f"Error in self.memory[self.prompt_name] {err}")
+            self.log.error(f"Error in self.memory[{prompt_name}] {err}")
             raise
 
         # Clear Old History
@@ -143,7 +144,7 @@ class Step:
         try:
             # self.ai.messages = messages
             self.update_gui()
-            ai_response = await self.ai.generate(self, messages)
+            ai_response = await self.ai.generate(self, messages, process_name=self.pname)
         except Exception as err:
             self.log.error(f"Error in ai.generate: {err}")
             raise
@@ -152,7 +153,7 @@ class Step:
 
         # Write log file if required...
         if self.text_file != '':
-            full_path = f"{self.storage_path}/{self.text_file}"
+            full_path = f"{self.pname}/{self.storage_path}/{self.text_file}"
             self.memory[full_path] = self.ai.answer
             self.log.info(f"│ Writing {full_path}")
 
