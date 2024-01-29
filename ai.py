@@ -121,7 +121,7 @@ class AI:
             updated_contents = file_contents.replace(old_code, new_code)
 
             # Writing the updated content back to the file
-            self.memory[name] = updated_contents
+            self.memory[full_name] = updated_contents
 
             result = await succeed({'role': 'function',
                                     'name': 'replace_function',

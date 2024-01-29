@@ -1,8 +1,8 @@
 import json
 import weakref
-from typing import Optional
+# from typing import Optional
 
-from pydantic_core import from_json
+# from pydantic_core import from_json
 # from textual.widgets import RichLog
 from rich.console import Console, OverflowMethod
 
