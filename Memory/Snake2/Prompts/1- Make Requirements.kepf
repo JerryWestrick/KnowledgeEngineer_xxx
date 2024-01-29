@@ -1,0 +1,7 @@
+.include Requirements/Actor.kepf
+.user
+Describe the "Snake" game. List the games rules. And list the user interface/interactions
+Write the game description to 'Planning/Requirements.md'
+.exec
+Read 'Planning/Requirements.md' Write an new version of the file 'Planning/Requirements.md' including anything forgotten.
+

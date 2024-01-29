@@ -4,7 +4,7 @@
   "name": "2- ExplainConfiguration",
   "prompt_name": "q2",
   "verify_prompt": "",
-  "storage_path": "Asterisk/Documentation",
+  "storage_path": "Documentation",
   "text_file": "ExplainConfigurationLog.md",
   "file_process_enabled": false,
   "file_process_name": "",

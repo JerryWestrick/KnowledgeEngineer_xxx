@@ -40,7 +40,7 @@ LineStatement_Grammar = r"""
 
 class MyTransformer(Transformer):
     # Class Variables
-    log = Logger(namespace="MyTransformer")
+    log = Logger(namespace="MyTransformer", debug=True)
 
     @staticmethod
     def start(statements):
@@ -145,7 +145,7 @@ class Compiler:
 
         return statements
 
-    def execute(self, statements):
+    def execute(self, statements, process_name: str = ''):
         calls = []
         messages = []
         stmts: dict[str, str] = {'system': '', 'user': ''}
@@ -164,7 +164,8 @@ class Compiler:
                 role = statement['role']
 
             elif keyword == 'include_statement':
-                msgs = self.db[statement['name']]
+                fname = statement['name']
+                msgs = self.db.read_msgs(statement['name'], process_name=process_name)
                 for msg in msgs[:-1]:
                     stmts[msg['role']] = f"{stmts[msg['role']]}\n{msg['content']}"
 
@@ -180,6 +181,7 @@ class Compiler:
                     # print(f"in {file}")
                     # Logger.log('STEP',f"{colors.INFO}- {file}")
                     # assumes only one msg is returned
+                    # @todo Modify to Auto include Proc when using proc...
                     msgs = self.db[file]
                     # print(f"in {file} 2")
                     msg = msgs[0]
