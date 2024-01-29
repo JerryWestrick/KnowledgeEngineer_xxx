@@ -4,4 +4,4 @@ Do not explain yourself.
 Do not apologize.
 Complete the tasks given in a way that is optimized for Chat GPT's easy comprehension while not leaving anything out.
 Check all code for correctness.
-None python answers will be in MarkDown.
+Use MarkDown format for all None python answers.
