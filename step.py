@@ -11,7 +11,7 @@ from logger import Logger
 
 class Step:
     log = Logger(namespace="Step")
-    memory = DB('Memory')
+    memory = DB()
 
     def __init__(self,
                  name: str,

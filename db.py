@@ -21,8 +21,12 @@ class DB:
     # macro is set to a shallow copy of the variables of each step before step execution.
     macro: dict[str, str] = {'version': '1.0'}
 
-    def __init__(self, path):
-        # path is the directory where the data is stored
+    def __init__(self, path=None):
+        # path is the directory where the data is stored, Usually 'Memory' in the current Directory
+        # path = None then use the value stored in the Environment Variable MEMORY_DIRECTORY
+        if path is None:
+            path = os.getenv('MEMORY_DIRECTORY')
+
         self.path = Path(path).absolute()
         self.path.mkdir(parents=True, exist_ok=True)
         self.compiler = Compiler(self)
@@ -45,7 +49,6 @@ class DB:
         msgs = self.get_messages(key, lines, process_name=process_name)
         return msgs
 
-
     def read(self, key: str, process_name: str = ''):
 
         if process_name:
@@ -60,17 +63,6 @@ class DB:
             self.log.info(f"Reading>>{key}")
             content = f.read()
         return content
-
-    # def read(self, key: str):
-    #     full_path = self.path / key
-    #     if not full_path.is_file():
-    #         self.log.error(f"Invalid Memory Item.  \nPath not found: {full_path}")
-    #         raise KeyError(key)
-    #     with full_path.open("r", encoding="utf-8") as f:
-    #         # read the file and return the contents
-    #         self.log.info(f"Reading>>{key}")
-    #         content = f.read()
-    #     return content
 
     def __getitem__(self, key: str) -> [dict[str, str]]:
         """Return the contents of the file with the given key."""

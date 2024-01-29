@@ -1,12 +1,12 @@
 import json
 import os
-from openai import AsyncOpenAI
-from logger import Logger
 
 from dotenv import load_dotenv
+from openai import AsyncOpenAI
 
 from OpenAI_API_Costs import OpenAI_API_Costs
 from db import DB
+from logger import Logger
 
 load_dotenv()
 
@@ -18,12 +18,7 @@ async def succeed(d: dict):
 class AI:
     log = Logger(namespace='AI', debug=True)
     log_a = Logger(namespace="Assistant", debug=True)
-    memory = DB('Memory')
-    # client = OpenAI()
-    # client.api_key = os.getenv('OPENAI_API_KEY')
-    # m = client.models.list()
-    # models = m.data
-    #
+    memory = DB()
     client = AsyncOpenAI()
     client.api_key = os.getenv('OPENAI_API_KEY')
 
@@ -250,7 +245,8 @@ class AI:
                 self.messages.append(response_message)
                 self.log.ai_msg(step, response_message)  # Display with last message
                 if ai_response.choices[0].finish_reason == 'function_call':
-                    new_msg = await self.available_functions[function_name](self, **function_args, process_name=process_name)
+                    new_msg = await self.available_functions[function_name](self, **function_args,
+                                                                            process_name=process_name)
                     self.messages.append(new_msg)
                     self.log.ret_msg(step, new_msg)
                     repeat = True

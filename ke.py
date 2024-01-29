@@ -7,7 +7,7 @@ import asyncio
 import shutil
 
 log = Logger(namespace="ke", debug=True)
-memory = DB('Memory')
+memory = DB()
 
 
 async def execute_process(process_name: str):
