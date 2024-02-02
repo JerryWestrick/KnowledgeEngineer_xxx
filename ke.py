@@ -1,5 +1,7 @@
 import argparse
 import time
+from pathlib import Path
+
 from db import DB
 from logger import Logger
 from step import Step
@@ -49,13 +51,33 @@ def create_new_proc(proc_name: str) -> None:
     shutil.copytree('./ExampleProcess', f'./Memory/{proc_name}')
 
 
+
+def list_all_processes():
+    proc_list = f"List of all Processes:"
+    proc_names = memory.glob_files("*")
+    proc_names.sort()
+    for proc_name in proc_names:
+        proc_list = f"{proc_list}\n{proc_name}"
+        step_names = memory.glob_files(f"{proc_name}/Process/*.kestep")
+        step_names.sort()
+        for step_full_name in step_names:
+            step_name = Path(step_full_name).stem
+            proc_list = f"{proc_list}\n    {step_name}"
+
+    log.info(proc_list)
+
+
 async def main(args):
 
     # Now you can access the arguments as follows
-    if not args.proc and not args.create:
+    if not args.proc and not args.create and not args.list:
         log.warn("No Option chosen.")
         parser.print_help()
         exit(1)
+
+    if args.list:
+        list_all_processes()
+        exit(0)
 
     log_file = None
     if args.file is not None:
@@ -91,6 +113,7 @@ if __name__ == "__main__":
     parser.add_argument("-step", metavar="step_name", type=str, help="execute the given step in the proc")
     parser.add_argument("-file", metavar="file_name", type=str, help="Log to the specified file")
     parser.add_argument("-create", metavar="create", type=str, help="Create a process with given name")
+    parser.add_argument("-list", action='store_true', help="List all Processes and Steps")
 
     # Parse the arguments
     args: argparse.Namespace = parser.parse_args()

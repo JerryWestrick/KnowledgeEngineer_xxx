@@ -76,10 +76,12 @@ class Step:
         )
         return step
 
-
     @classmethod
     def from_file(cls, pname: str, sname: str) -> 'Step':
         k: str = f"{sname}"
+        if k[-7:] != '.kestep':
+            k = k + '.kestep'
+
         full_path = f"Memory/{pname}/Process/{k}"
         if not os.path.isfile(full_path):
             wlog = Logger("Step Class")
@@ -176,4 +178,3 @@ class Step:
                       f"(Prompt: ${self.ai.e_stats['sp_cost']:.4f}, "
                       f"Completion: ${self.ai.e_stats['sc_cost']:.4f})"
                       f"\n{self.log.ts()}{head}{bottom_left}{'─' * 80}")
-

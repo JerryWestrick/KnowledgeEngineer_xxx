@@ -1,8 +1,6 @@
 # KnowledgeEngineer
 
-***Text Based IDE allowing for the Engineering of Knowledge for Chat-GPT.***
-
-TUI based on [Textual](https://textual.textualize.io/)
+***Command Line Program allowing for the Engineering of Knowledge for Chat-GPT.***
 
 #  Screen Shot
 
@@ -40,7 +38,7 @@ Your Milage May Vary
 # A Different Approach
 The previous solutions had one thing in common.  They are general solutions to be applied to any problem irrelevant of the domain of the problem.
 
-In IT we have long known that the more domain knowledge you put into your solution the better and more elegant you can make the solution.  So let us do that here...
+In IT, we have long known that the more domain knowledge you put into your solution the better and more elegant you can make the solution.  So let us do that here...
 
 But let's start from the beginning...
 
@@ -56,7 +54,7 @@ Okay, what now?
 
 We need to manage the Knowledge, We need to break the problem into the steps.  Each step needs to use specific inputs designed exactly for that step.  The problem within the step needs to be singularly focused on one problem.  Each output needs to be designed for the next step. We need a system that is strictly top down and does not need previous contexts to do the next step.  each step is its own problem domain.  
 
-***We need... The WaterFall Technique*** 
+***We need... The WaterFall Technique???*** 
 
 ***What?   Oh... YES!*** 
 
@@ -86,7 +84,7 @@ Jerry The Dinosaur
 
 
 # P.S.
-## The project is managed with JetBrains YouTrack, and Github
+## The project is managed with JetBrains YouTrack, and GitHub
 ### YouTrack Configuration
 - Place Configuration information here...
 ### GitHub Configuration
