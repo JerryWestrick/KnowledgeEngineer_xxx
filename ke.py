@@ -8,6 +8,7 @@ from step import Step
 import asyncio
 import shutil
 
+
 log = Logger(namespace="ke", debug=True)
 memory = DB()
 
@@ -49,7 +50,6 @@ def create_new_proc(proc_name: str) -> None:
     log.info(f"In Create Proc {proc_name}")
     # Copy ExampleProcess directory to Memory/{proc_name}
     shutil.copytree('./ExampleProcess', f'./Memory/{proc_name}')
-
 
 
 def list_all_processes():

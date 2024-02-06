@@ -25,7 +25,7 @@ class DB:
         # path is the directory where the data is stored, Usually 'Memory' in the current Directory
         # path = None then use the value stored in the Environment Variable MEMORY_DIRECTORY
         if path is None:
-            path = os.getenv('MEMORY_DIRECTORY')
+            path = os.getenv('KE_DIR_MEMORY')
 
         self.path = Path(path).absolute()
         self.path.mkdir(parents=True, exist_ok=True)

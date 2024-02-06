@@ -3,3 +3,5 @@ openai
 python-dotenv
 lark
 jsonpickle
+textual
+textual-dev
