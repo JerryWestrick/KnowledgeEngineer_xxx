@@ -17,11 +17,11 @@ This_Process_Name: str | None = None
 
 Dir_Process: str | None = None
 Dir_Prompt: str | None = None
-Dir_Requirements: str |None = None
-
+Dir_Requirements: str | None = None
 
 This_Step_Name: str | None = None
 This_Step: Step | None = None
+
 
 class KEStepEditor(App):
     """Knowledge Engineer Step Editor"""
@@ -38,60 +38,41 @@ class KEStepEditor(App):
         yield Header()
         yield Footer()
 
-        # name = json_obj['name'],
         name_lbl = Label("Name: ", id="name_lbl", classes="label")
         name_text = Input(placeholder="Enter Step Name", value=This_Step.name, id="name_text", classes="text_edit")
 
-        # prompt_name = json_obj['prompt_name'],
         prompt_name_lbl = Label("Prompt: ", id="prompt_name_lbl", classes="label")
         my_prompts = glob.glob(os.path.join(Dir_Prompt, "*.kepf"))
         my_prompts.sort()
         values = [f"Prompts/{os.path.basename(p)}" for p in my_prompts]
         prompt_select = Select.from_values(values=values, id="prompt_select", classes="select_edit",
-                                      value=f"{This_Step.prompt_name}", allow_blank=False)
-
-        # prompt_name_text = Input(placeholder="Enter Prompt Name", value=This_Step.prompt_name, id="prompt_name_text", classes="text_edit")
-
-        # verify_prompt = json_obj['verify_prompt'],
+                                           value=f"{This_Step.prompt_name}", allow_blank=False)
 
         verify_prompt_lbl = Label("Verify Prompt: ", id="verify_prompt_lbl", classes="label")
-        verify_prompt_text = Input(placeholder="Enter Verify Prompt", value=This_Step.verify_prompt, id="verify_prompt_text", classes="text_edit")
+        verify_prompt_text = Input(placeholder="Enter Verify Prompt", value=This_Step.verify_prompt,
+                                   id="verify_prompt_text", classes="text_edit")
 
-        # storage_path = json_obj['storage_path'],
         storage_path_lbl = Label("Storage Path: ", id="storage_path_lbl", classes="label")
-        storage_path_text = Input(placeholder="Enter Storage Path", value=This_Step.storage_path, id="storage_path_text", classes="text_edit")
+        storage_path_text = Input(placeholder="Enter Storage Path", value=This_Step.storage_path,
+                                  id="storage_path_text", classes="text_edit")
 
-        # text_file = json_obj['text_file'],
         text_file_lbl = Label("Text File: ", id="text_file_lbl", classes="label")
-        text_file_text = Input(placeholder="Enter Text File", value=This_Step.text_file, id="text_file_text", classes="text_edit")
+        text_file_text = Input(placeholder="Enter Text File", value=This_Step.text_file, id="text_file_text",
+                               classes="text_edit")
 
-        # file_process_enabled_lbl = Label("File Process Enabled", id="file_process_enabled_lbl", classes="label")
-        # file_process_enabled_checkbox = Checkbox(checked=json_obj['file_process_enabled'])
-        #
-        # file_process_name_lbl = Label("File Process Name", id="file_process_name_lbl", classes="label")
-        # file_process_name_text = Input(placeholder="Enter File Process Name", id="file_process_name_text", classes="text_edit")
-        #
-        # file_glob_lbl = Label("File Glob", id="file_glob_lbl", classes="label")
-        # file_glob_text = Input(placeholder="Enter File Glob", id="file_glob_text", classes="text_edit")
-        #
-        # macros_lbl = Label("Macros", id="macros_lbl", classes="label")
-        # macros_text = Input(placeholder="Enter Macros", id="macros_text", classes="text_edit")
-
-        # 'model': self.model,
         model_lbl = Label("Model: ", id="model_lbl", classes="label")
         models = OpenAI_API_Costs.keys()
         model_select = Select.from_values(values=models, id="model_select", classes="select_edit",
-                                      value=This_Step.ai.model, allow_blank=False)
+                                          value=This_Step.ai.model, allow_blank=False)
 
-        # 'temperature': self.temperature,
         temperature_lbl = Label("Temperature: ", id="temperature_lbl", classes="label")
-        temperature_text = Input(placeholder="Enter temperature", value=This_Step.ai.temperature, id="temperature_text", classes="text_edit")
+        temperature_text = Input(placeholder="Enter temperature", value=This_Step.ai.temperature, id="temperature_text",
+                                 classes="text_edit")
 
-        # 'max_tokens': self.max_tokens,
         max_tokens_lbl = Label("Max Tokens: ", id="max_tokens_lbl", classes="label")
-        max_tokens_text = Input(placeholder="Enter Max Tokens", value=This_Step.ai.max_tokens, type="integer", id="max_tokens_text", classes="text_edit")
+        max_tokens_text = Input(placeholder="Enter Max Tokens", value=This_Step.ai.max_tokens, type="integer",
+                                id="max_tokens_text", classes="text_edit")
 
-        # 'mode': self.mode,
         mode_lbl = Label("Mode: ", id="mode_lbl", classes="label")
         mode_text = Input(placeholder="Enter Mode", value=This_Step.ai.mode, id="mode_text", classes="text_edit")
 
