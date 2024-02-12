@@ -91,10 +91,7 @@ class AI:
         return result
 
     async def write_file(self, name: str, contents: str, process_name: str):
-        if process_name != '':
-            full_name = f"{process_name}/{name}"
-        else:
-            full_name = name
+        full_name = name
         try:
             self.memory[full_name] = contents
         except Exception as err:
@@ -104,10 +101,7 @@ class AI:
         return result
 
     async def replace(self, name: str, old_code: str, new_code: str, process_name: str) -> dict:
-        if process_name != '':
-            full_name = f"{process_name}/{name}"
-        else:
-            full_name = name
+        full_name = name
         try:
             # Reading the entire file content
             file_contents = self.memory.read(full_name)

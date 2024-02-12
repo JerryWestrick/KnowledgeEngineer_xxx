@@ -13,7 +13,29 @@ from logger import Logger
 
 
 class DB:
-    """A simple key-value store, where keys are filenames and values are file contents."""
+    """
+    The Memory is designed to force uniformity to the access of the directory holding all the files for a process.
+    This allows us to add / modify several additions to the normal file access:
+    1- The "Backup" system to save older versions of a file when it is overwritten.
+    2- The execution of include statements and other statements implemented for the .kepe files.
+    3- Macro Expansion added to the .kepe files, allowing for an additional level of redundancy
+
+    Additionally, since the DB class encapsulates file access for a process, it is initialized once per execution,
+    This is the reason for the SingleTon Design.  In order to do multiple Tests a class method "reset" is available
+    to reset the singleton.
+
+    The Directory being managed here represents all the memory needs of a KnowledgeEngineer "process", and is
+    configured via environment variables.  The values for these variables are stored in the "ke_process_config.env"
+    file.  The "ke_process_config.env" file should set the following environment variables:
+    KE_PROC_DIR_PROMPTS='Prompts'
+    KE_PROC_DIR_STEPS='Process'
+    KE_PROC_DIR_REQUIREMENTS='Requirements'
+    OPENAI_API_KEY=<Your Open API key>
+
+    The first 3 values are the subdirectories where the process stores different value types,
+    i.e. a Steps file called "1- Step One" will be looked for in:  ./Process/"1- Step One.kesteps"
+
+    """
     log = Logger(namespace='DB', debug=False)
     # a class variable holding a dictionary of all macro_name -> values
     # this is used to replace macro names in the contents of the files
@@ -21,11 +43,29 @@ class DB:
     # macro is set to a shallow copy of the variables of each step before step execution.
     macro: dict[str, str] = {'version': '1.0'}
 
+    _instance = None
+
+    def __new__(cls, *args, **kwargs):
+        """The DB Memory is designed as a SingleTon.  This makes testing more difficult, but usage easier.
+         """
+        if not cls._instance:
+            cls._instance = super(DB, cls).__new__(cls, *args, **kwargs)
+        return cls._instance
+
+    @classmethod
+    def rest(cls):
+        cls._instance = None
+
     def __init__(self, path=None):
-        # path is the directory where the data is stored, Usually 'Memory' in the current Directory
-        # path = None then use the value stored in the Environment Variable MEMORY_DIRECTORY
+        # path is the base directory where the process data is stored.
+        # if path=None then use the current directory is used.
+        #
+        # The all cases the path=directory must contain a file named "ke_process_config.env".
+
         if path is None:
             path = os.getenv('KE_DIR_MEMORY')
+        if path is None:
+            path = os.curdir
 
         self.path = Path(path).absolute()
         self.path.mkdir(parents=True, exist_ok=True)
@@ -51,10 +91,11 @@ class DB:
 
     def read(self, key: str, process_name: str = ''):
 
-        if process_name:
-            full_path = self.path / process_name / key
-        else:
-            full_path = self.path / key
+        # if process_name:
+        #     full_path = self.path / process_name / key
+        # else:
+        #     full_path = self.path / key
+        full_path = self.path / key
         if not full_path.is_file():
             self.log.error(f"Invalid Memory Item.  \nPath not found: {full_path}")
             raise KeyError(key)

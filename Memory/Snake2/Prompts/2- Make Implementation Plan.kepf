@@ -1,7 +1,0 @@
-.include Requirements/Actor.kepf
-.user
-Read the requirements from file 'Planning/Requirements.md'.
-Create Implementation Plan in file 'Planning/Implementation_Plan.md'
-.exec
-Study the implementation plan.  Write a new version of 'Planning/Implementation_Plan.md' including any
-forgotten requirements or routines.

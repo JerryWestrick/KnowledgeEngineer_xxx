@@ -81,8 +81,11 @@ class Step:
         k: str = f"{sname}"
         if k[-7:] != '.kestep':
             k = k + '.kestep'
-
-        full_path = f"Memory/{pname}/Process/{k}"
+        step_dir = os.getenv('KE_PROC_DIR_STEPS')
+        if k.startswith(step_dir):
+            full_path = f"{k}"
+        else:
+            full_path = f"{step_dir}/{k}"
         if not os.path.isfile(full_path):
             wlog = Logger("Step Class")
             wlog.error(f"Invalid Memory Item.  \nPath not found: {full_path}")
@@ -113,9 +116,13 @@ class Step:
         head_len = 12
         head = ' ' * head_len
         self.memory.macro = self.macros  # Use these values for macro substitution
-        prompt_name = f"{self.pname}/{self.prompt_name}"
+        prompt_dir = os.getenv('KE_PROC_DIR_PROMPTS')
+        if self.prompt_name.startswith(prompt_dir):
+            prompt_name = self.prompt_name
+        else:
+            prompt_name = f"{prompt_dir}/{self.prompt_name}"
         try:
-            messages = self.memory.read_msgs(self.prompt_name, process_name=self.pname)
+            messages = self.memory.read_msgs(prompt_name, process_name=self.pname)
         except Exception as err:
             self.log.error(f"Error in self.memory[{prompt_name}] {err}")
             raise
@@ -155,7 +162,7 @@ class Step:
 
         # Write log file if required...
         if self.text_file != '':
-            full_path = f"{self.pname}/{self.storage_path}/{self.text_file}"
+            full_path = f"{self.storage_path}/{self.text_file}"
             self.memory[full_path] = self.ai.answer
             self.log.info(f"│ Writing {full_path}")
 
